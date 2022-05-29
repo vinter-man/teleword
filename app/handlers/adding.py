@@ -8,3 +8,19 @@ ADD WORDS TO USER DB (all skills with redis, algorithmic, aiogram, restapi)
 back button
 reset button
 """
+import asyncio
+import logging
+import sys
+import time
+
+########################################################################################################################
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+        level=logging.INFO,
+        stream=sys.stdout,
+        format='[%(asctime)s]:[%(levelname)s]:[%(filename)s]:[%(lineno)d]: %(message)s',
+    )
+
+
+########################################################################################################################
+
