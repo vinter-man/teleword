@@ -1,3 +1,4 @@
+import datetime
 import logging
 import sys
 
@@ -7,6 +8,7 @@ import mysql.connector
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import sessionmaker
+import sqlalchemy.exc
 
 from config.config import MY_SQL
 
@@ -40,6 +42,7 @@ class Users(Base):
     is_bot = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
     creation_time = sqlalchemy.Column(sqlalchemy.String(20), nullable=False)
     last_use_time = sqlalchemy.Column(sqlalchemy.String(20), nullable=False)
+    current_use_time = sqlalchemy.Column(sqlalchemy.String(20), nullable=False)
 
     exxs = relationship('examples', backref='user_examples')
     stats = relationship('statistics', backref='user_statistics')
@@ -90,6 +93,63 @@ session = DbSession()
 ########################################################################################################################
 ########################################################################################################################
 # adding.py functions
+def is_user(telegram_id: str) -> bool:
+
+    result = session.query(Users).filter(Users.tg_id == telegram_id).all()
+    if not result:
+        return False
+    return True
+
+
+def add_user(tg_id: int, nickname: str, lang_code: str, shock_mode: int, is_blacklisted: bool,
+             is_bot: bool, creation_time: str, last_use_time: str, current_use_time: str):
+
+    session.add(Users(
+        tg_id=tg_id, nickname=nickname, lang_code=lang_code, shock_mode=shock_mode, is_blacklisted=is_blacklisted,
+        is_bot=is_bot, creation_time=creation_time, last_use_time=last_use_time, current_use_time=current_use_time
+    ))
+    session.commit()
+
+
+def change_user_last_using(user_tg_id: str):
+
+    user = session.query(Users).filter_by(tg_id=user_tg_id).one()
+    user.current_use_time = str(datetime.date.today())
+
+    difference = datetime.date.fromisoformat(user.current_use_time) - datetime.date.fromisoformat(user.last_use_time)
+    difference = int(difference.days)
+
+    if not difference:
+        logger.info(f'| {user_tg_id} | no different user using time')
+    elif difference == 1:
+        logger.info(f'| {user_tg_id} | shock_mode +1 day')
+        user.shock_mode += 1
+        user.last_use_time = user.current_use_time
+    else:
+        logger.info(f'| {user_tg_id} | shock_mode is finish')
+        user.shock_mode = 0
+        user.last_use_time = user.current_use_time
+
+    session.add(user)
+    session.commit()
+
+
+def users_bl_list() -> list:
+    return [i for i in session.query(Users).filter_by(is_blacklisted='True').all()]
+
+
+def change_user_bl_status(user_tg_id, change_for: bool):
+
+    user = session.query(Users).filter_by(tg_id=user_tg_id).one()
+
+    if change_for:
+        user.is_blacklisted = True
+    else:
+        user.is_blacklisted = False
+
+    session.add(user)
+    session.commit()
+    logger.info(f'| {user_tg_id} | changed black list status to "{change_for}"')
 
 
 ########################################################################################################################
@@ -100,3 +160,5 @@ session = DbSession()
 # SUB-QUERIES >>>
 # >>> SELECT FirstName, Salary FROM employees WHERE  Salary > (SELECT AVG(Salary) FROM employees) ORDER BY Salary DESC;
 # all 3 relationship!
+# AUTO_INCREMENT for primary keys
+# The ALTER TABLE command is used to add(ADD), delete(DROP COLUMN), or modify(RENAME) columns in an existing table.

@@ -10,6 +10,7 @@ from aiogram.contrib.fsm_storage.redis import RedisStorage2
 
 from config import config
 from app.handlers.common import register_handlers_common
+from app.handlers.adding import register_adding_handlers
 
 
 logger = logging.getLogger(__name__)
@@ -44,6 +45,7 @@ async def main():
 
     # Handlers registration
     register_handlers_common(dp, config.ADMIN_ID_TG)
+    register_adding_handlers(dp)
     # register_handlers_drinks(dp)
     # register_handlers_food(dp)
 
