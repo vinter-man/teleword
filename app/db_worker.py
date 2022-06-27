@@ -37,7 +37,7 @@ class Users(Base):
     tg_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     nickname = sqlalchemy.Column(sqlalchemy.String(250), nullable=False)
     lang_code = sqlalchemy.Column(sqlalchemy.String(10), nullable=False)
-    shock_mode = sqlalchemy.Column(sqlalchemy.Integer)
+    shock_mode = sqlalchemy.Column(sqlalchemy.Integer, default=0)
     is_blacklisted = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
     is_bot = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
     creation_time = sqlalchemy.Column(sqlalchemy.String(20), nullable=False)
@@ -51,7 +51,7 @@ class Users(Base):
 class UsersExamples(Base):
     __tablename__ = 'examples'
 
-    ex_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    ex_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True, nullable=False)
     example = sqlalchemy.Column(sqlalchemy.String(400), nullable=False)
     user_tg_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.tg_id'))
 
@@ -60,11 +60,11 @@ class UsersExamples(Base):
 
 class UsersExamplesWords(Base):
     __tablename__ = 'words'
-    word_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    word_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True, nullable=False)
     word = sqlalchemy.Column(sqlalchemy.String(135), nullable=False)
     description = sqlalchemy.Column(sqlalchemy.String(400), nullable=False)
     category = sqlalchemy.Column(sqlalchemy.String(20))
-    rating = sqlalchemy.Column(sqlalchemy.Integer)
+    rating = sqlalchemy.Column(sqlalchemy.Integer, default=0)
     example_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('examples.ex_id'))
 
 
@@ -92,7 +92,7 @@ session = DbSession()
 
 ########################################################################################################################
 ########################################################################################################################
-# adding.py functions
+# common.py functions
 def is_user(telegram_id: str) -> bool:
 
     result = session.query(Users).filter(Users.tg_id == telegram_id).all()
@@ -150,6 +150,54 @@ def change_user_bl_status(user_tg_id, change_for: bool):
     session.add(user)
     session.commit()
     logger.info(f'| {user_tg_id} | changed black list status to "{change_for}"')
+
+
+########################################################################################################################
+# adding.py functions
+def add_example(example_text: str, user_tg_id: str) -> UsersExamples:
+    """Adding new example to 'examples' table, return UsersExamples obj"""
+
+    example_in = session.query(UsersExamples).filter(sqlalchemy.and_(
+        UsersExamples.example == example_text,
+        UsersExamples.user_tg_id == user_tg_id
+    )).firtst()    # First result | None
+    if example_in:    # no need to add
+        logger.info(f'| {user_tg_id} | example already added return value')
+        return example_in
+
+    example_to_add = UsersExamples(
+        example=example_text,
+        user_tg_id=user_tg_id
+    )
+    session.add(example_to_add)
+    session.commit()
+    logger.info(f'| {user_tg_id} | example successfully added return value')
+    return example_to_add
+
+
+def add_word(word: str, description: str, category: str, rating: int, example: UsersExamples):
+    """Adding new word to 'words' table"""
+
+    word_in = session.query(UsersExamplesWords).filter(sqlalchemy.and_(
+        UsersExamplesWords.word == word,
+        UsersExamplesWords.description == description,
+        UsersExamplesWords.example_id == example.ex_id,
+    )).firtst()    # First result | None
+
+    if word_in:
+        logger.warning(f'| {word, example.ex_id} | word already added')
+        return
+
+    word_to_add = UsersExamplesWords(
+        word=word,
+        description=description,
+        category=category,
+        rating=rating,
+        example_id=example.ex_id    # or "example_words=example"
+    )
+    session.add(word_to_add)
+    session.commit()
+    logger.info(f'| {word, example.ex_id} | word successfully added')
 
 
 ########################################################################################################################

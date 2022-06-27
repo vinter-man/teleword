@@ -33,6 +33,7 @@ async def start_cmd(message: types.Message, state: FSMContext):
     logger.info(f'|{message.from_user.username}| Use start command')
 
     if not db_worker.is_user(message.from_user.id):
+        logger.info(f'|{message.from_user.username}| adding new user to "users" table...')
         now = str(datetime.date.today())
         db_worker.add_user(tg_id=message.from_user.id,
                            nickname=message.from_user.username,
