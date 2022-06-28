@@ -13,7 +13,6 @@ import logging
 import sys
 import time
 
-
 from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -21,6 +20,8 @@ from aiogram.utils.markdown import text, bold, italic, code, pre
 from aiogram.utils.emoji import emojize
 from aiogram.types import ParseMode, InputMediaPhoto, InputMediaVideo, ChatActions
 from aiogram.dispatcher.filters import Text
+
+from .. import db_worker
 
 
 ########################################################################################################################
@@ -38,6 +39,7 @@ class AddingData(StatesGroup):
     waiting_for_example = State()
     waiting_for_word = State()
     waiting_for_description = State()
+    waiting_for_next_move = State()
 
 
 ########################################################################################################################
@@ -82,21 +84,19 @@ async def cb_get_example_set_word_input(call: types.CallbackQuery, state: FSMCon
     1 action
         get example from redis data
     """
-
+    await call.message.delete_reply_markup()
     username = call.from_user.username
     user_data = await state.get_data()
     user_example = user_data.get('last_example')
     example_length = len(user_example)
     logger.info(f'{username} Send call with example({example_length}) \n\n >>> {user_example}\n\n')
 
-    # * write correct text
-    # All is ok. Write current data example, reply user, set next step state
-    await state.update_data(current_example=user_example)   # it will be switched with last_example
+    # everything is fine. Write current data example, answer the user, set next step state
+    await state.update_data(current_example=user_example)   # it will be switched with the last_example
     answer = text(
-           rf'Cool\! We have used your last exx: "{user_example[:5]}\.\.\."\.',
-           '\nNow write your word ', italic(r'(from 1 to 135 characters).'))
+           rf'Cool\! We used your last example: "{user_example[:5]}\.\.\."\.',
+           '\nNow write your word ', italic(r'(from 1 to 135 characters long).'))
     await call.bot.send_message(call.from_user.id, text=answer, parse_mode=ParseMode.MARKDOWN_V2)
-    await call.message.delete_reply_markup()
     await call.answer(show_alert=False)
     await AddingData.waiting_for_word.set()
 
@@ -111,19 +111,17 @@ async def ms_get_example_set_word_input(message: types.Message, state: FSMContex
     example_length = len(user_example)
     logger.info(f'{username} Send message with example({example_length}) \n\n >>> {user_example}\n\n')
 
-    # * write correct text
-    # Wrong length
+    # wrong length
     if example_length > 400 or example_length < 5:
         answer = text(
-               rf'You example length is {example_length}\. Try again')
+               rf'The length of your example is {example_length}\. Try again')
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         return
 
-    # * write correct text
-    # All is ok. Write current data example, reply user, set next step state
+    # everything is fine. Write current data example, answer the user, set next step state
     await state.update_data(current_example=user_example)   # it will be switched with last_example
     answer = text(
-           r'Cool\! Now write your word', italic('(from 1 to 135 characters).'))
+           r'Cool\! Now enter your word', italic('(from 1 to 135 characters long).'))
     await message.reply(answer, parse_mode=ParseMode.MARKDOWN_V2)
     await AddingData.waiting_for_word.set()
 
@@ -138,19 +136,17 @@ async def ms_get_word_set_description_input(message: types.Message, state: FSMCo
     word_length = len(user_word)
     logger.info(f'{username} Send message with word({word_length}) >>> {user_word}')
 
-    # * write correct text
-    # Wrong length
+    # wrong length
     if word_length > 135 or word_length < 1:
         answer = text(
-               rf'You word length is {word_length}\. Try again')
+               rf'The length of your word is  {word_length}\. Try again')
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         return
 
-    # * write correct text
-    # All is ok. Write current data example, reply user, set next step state
+    # everything is fine. Write current data example, reply the user, set next step state
     await state.update_data(current_word=user_word)
     answer = text(
-           r'Cool\! Now write your word description', italic('(from 1 to 400 characters).'))
+           r'Cool\! Now write your description of the word', italic('(from 1 to 400 characters long).'))
     await message.reply(answer, parse_mode=ParseMode.MARKDOWN_V2)
     await AddingData.waiting_for_description.set()
 
@@ -159,63 +155,125 @@ async def ms_get_description_write_data_to_sql(message: types.Message, state: FS
     """
     3 action
         get description from user input
-        write current data to mysql tables
-        switch current to last examples
-        send suggestion to add new data
+        write current data in mysql tables
+        switch current_ to last_examples
+        send a proposal to add new data
     """
     username = message.from_user.username
     user_description = message.text
     description_length = len(user_description)
     logger.info(f'{username} Send message with description({description_length}) \n\n >>> {user_description}\n\n')
 
-    # * write correct text
-    # Wrong length
+    # wrong length
     if description_length > 400 or description_length < 1:
         answer = text(
-               rf'You description length is {description_length}\. Try again')
+               rf'The length of your description is  {description_length}\. Try again')
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         return
 
-    # * write correct text
-    # All is ok. Write current data description, reply user
+    # everything is fine. Save current data description, reply user
     await state.update_data(current_description=user_description)
     answer = text(
            r'Cool\!')
     await message.reply(answer, parse_mode=ParseMode.MARKDOWN_V2)
+    await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)  # comfortable waiting for the user
 
     data = await state.get_data()
     example = data.get('current_example')
     word = data.get('current_word')
     description = data.get('current_description')
+    category = '-'     # * write rest_ip
 
-    # * write sql func
+    # work with sql tables 'examples' -> 'words'
+    user_example = db_worker.add_example(
+        example_text=example,
+        user_tg_id=message.from_user.id
+    )
+    user_word = db_worker.add_word(
+        word=word,
+        description=description,
+        category=category,
+        rating=0,
+        example=user_example,
+    )
 
-    answer = text(
-           bold('Congratulate'), r'your data have been successfully written\!', '\n',
-           bold('\n\tExample'), ' : ', italic(rf'"{example}"'),
-           bold('\n\tWord'), ' : ', italic(fr'{word}'),
-           bold('\n\tDescription'), ' : ', italic(fr'{description}'))
-    await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
-
-    # finish, but with saving data (we need last_example in the future)
-    await state.update_data(last_example=example,     # told you about switching, dude
+    # finish, but saving data (we need last_example in the future)
+    await state.update_data(last_example=example,     # told you about the switching
                             current_example=None,
                             current_word=None,
                             current_description=None,
                             with_data=False)
 
-    # * write inline button add more| / |exit|ok|nice
+    # answer with buttons, set next step state
+    answer = text(
+           bold('Congratulate'), r'your data have been successfully written\!', '\n',
+           bold('\n\tExample'), ' : ', italic(rf'"{example}"'),
+           bold('\n\tWord'), ' : ', italic(fr'{word}'),
+           bold('\n\tDescription'), ' : ', italic(fr'{description}'))
+    inl_keyboard = types.InlineKeyboardMarkup()
+    inl_button = [
+        types.InlineKeyboardButton(text=text(emojize(':man_surfing: Continue ')), callback_data='call_add'),
+        types.InlineKeyboardButton(text=text(emojize(':desert_island: Exit ')), callback_data='call_cancel')]
+    inl_keyboard.add(*inl_button)
+    await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
+    await AddingData.waiting_for_next_move.set()
 
+
+async def cb_cancel(call: types.CallbackQuery, state: FSMContext):
+    """
+    4 action
+        exit call works as a /cancel from common
+        but only if state is AddingData.waiting_for_next_move
+    """
+    logger.info(f'| {call.from_user.username} | Use cancel call')
+
+    await call.message.delete_reply_markup()
+    txt = text(r'Main menu with available commands\: /help')
+    await call.message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2)
+    await call.answer(show_alert=False)
     await state.reset_state(with_data=False)
+
+
+async def cb_delegate_add(call: types.CallbackQuery, state: FSMContext):
+    """
+    4 action
+        delegate work in add_cmd coroutine
+    """
+    username = call.from_user.username
+    logger.info(f'{username} Send call with /add command')
+
+    await call.message.delete_reply_markup()
+    await call.answer(show_alert=False)
+    await add_cmd(message=call.message, state=state)
 
 
 ########################################################################################################################
 def register_adding_handlers(dp: Dispatcher):
     logger.info(f'| {dp} | Register adding handlers')
-    dp.register_message_handler(add_cmd, commands=['add'])
-    dp.register_callback_query_handler(cb_get_example_set_word_input, Text(equals='call_last_exx'),
-                                       state=AddingData.waiting_for_example)    # first
-    dp.register_message_handler(ms_get_example_set_word_input, state=AddingData.waiting_for_example)
-    dp.register_message_handler(ms_get_word_set_description_input, state=AddingData.waiting_for_word)
-    dp.register_message_handler(ms_get_description_write_data_to_sql, state=AddingData.waiting_for_description)
 
+    dp.register_message_handler(add_cmd, commands=['add'])
+
+    dp.register_callback_query_handler(
+        cb_get_example_set_word_input,
+        Text(equals='call_last_exx'),
+        state=AddingData.waiting_for_example
+    )    # first
+    dp.register_message_handler(ms_get_example_set_word_input,
+                                state=AddingData.waiting_for_example)
+
+    dp.register_message_handler(ms_get_word_set_description_input,
+                                state=AddingData.waiting_for_word)
+
+    dp.register_message_handler(ms_get_description_write_data_to_sql,
+                                state=AddingData.waiting_for_description)
+
+    dp.register_callback_query_handler(
+        cb_cancel,
+        Text(equals='call_cancel'),
+        state=AddingData.waiting_for_next_move
+    )
+    dp.register_callback_query_handler(
+        cb_delegate_add,
+        Text(equals='call_add'),
+        state=AddingData.waiting_for_next_move
+    )

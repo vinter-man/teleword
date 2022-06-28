@@ -44,8 +44,8 @@ class Users(Base):
     last_use_time = sqlalchemy.Column(sqlalchemy.String(20), nullable=False)
     current_use_time = sqlalchemy.Column(sqlalchemy.String(20), nullable=False)
 
-    exxs = relationship('examples', backref='user_examples')
-    stats = relationship('statistics', backref='user_statistics')
+    exxs = relationship('UsersExamples', backref='user_examples')
+    stats = relationship('UsersStatistics', backref='user_statistics')
 
 
 class UsersExamples(Base):
@@ -53,9 +53,9 @@ class UsersExamples(Base):
 
     ex_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True, nullable=False)
     example = sqlalchemy.Column(sqlalchemy.String(400), nullable=False)
-    user_tg_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.tg_id'))
+    user_tg_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.tg_id'), nullable=False)
 
-    words = relationship('words', backref='example_words')
+    words = relationship('UsersExamplesWords', backref='example_words')
 
 
 class UsersExamplesWords(Base):
@@ -154,14 +154,14 @@ def change_user_bl_status(user_tg_id, change_for: bool):
 
 ########################################################################################################################
 # adding.py functions
-def add_example(example_text: str, user_tg_id: str) -> UsersExamples:
+def add_example(example_text: str, user_tg_id: int) -> UsersExamples:
     """Adding new example to 'examples' table, return UsersExamples obj"""
 
     example_in = session.query(UsersExamples).filter(sqlalchemy.and_(
         UsersExamples.example == example_text,
         UsersExamples.user_tg_id == user_tg_id
-    )).firtst()    # First result | None
-    if example_in:    # no need to add
+    )).first()   # First result | None
+    if example_in:      # no need to add
         logger.info(f'| {user_tg_id} | example already added return value')
         return example_in
 
@@ -182,7 +182,7 @@ def add_word(word: str, description: str, category: str, rating: int, example: U
         UsersExamplesWords.word == word,
         UsersExamplesWords.description == description,
         UsersExamplesWords.example_id == example.ex_id,
-    )).firtst()    # First result | None
+    )).first()   # First result | None
 
     if word_in:
         logger.warning(f'| {word, example.ex_id} | word already added')
