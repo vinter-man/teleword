@@ -44,7 +44,7 @@ class Users(Base):
     last_use_time = sqlalchemy.Column(sqlalchemy.String(20), nullable=False)
     current_use_time = sqlalchemy.Column(sqlalchemy.String(20), nullable=False)
 
-    exxs = relationship('UsersExamples', backref='user_examples')
+    exxs = relationship('UsersExamples', backref='user_examples')    # class not table name
     stats = relationship('UsersStatistics', backref='user_statistics')
 
 

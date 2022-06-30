@@ -13,6 +13,7 @@ import logging
 import sys
 import time
 
+import requests
 from aiogram import Bot, Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -20,6 +21,7 @@ from aiogram.utils.markdown import text, bold, italic, code, pre
 from aiogram.utils.emoji import emojize
 from aiogram.types import ParseMode, InputMediaPhoto, InputMediaVideo, ChatActions
 from aiogram.dispatcher.filters import Text
+from config.config import APP_KEY_OXF, APP_ID_OXF, URL_OXF
 
 from .. import db_worker
 
@@ -182,8 +184,11 @@ async def ms_get_description_write_data_to_sql(message: types.Message, state: FS
     example = data.get('current_example')
     word = data.get('current_word')
     description = data.get('current_description')
-    category = '-'     # * write rest_ip
-
+    category = get_word_category(
+        word=word,
+        default='-',
+        url=URL_OXF
+    )
     # work with sql tables 'examples' -> 'words'
     user_example = db_worker.add_example(
         example_text=example,
@@ -245,6 +250,28 @@ async def cb_delegate_add(call: types.CallbackQuery, state: FSMContext):
     await call.message.delete_reply_markup()
     await call.answer(show_alert=False)
     await add_cmd(message=call.message, state=state)
+
+
+def get_word_category(word: str, default='-', url=URL_OXF) -> str:
+    url += word.lower()
+    headers = {
+        'app_id': APP_ID_OXF,
+        'app_key': APP_KEY_OXF
+    }
+    r = requests.get(url, headers=headers)
+    if r.status_code != 200:
+        logger.warning(f'{word} Requests error '
+                       f'{r.status_code, headers, url} \n {r.text} \n ')
+        return default
+
+    word_data = r.json()
+    if "error" in word_data.keys():
+        logger.warning(f'{word} No entry found that matches the provided data'
+                       f'{r.status_code, headers, url} \n {r.text} \n ')
+        return default
+
+    # Noun | Verb ... (Part of speech)
+    return word_data["results"][0]["lexicalEntries"][0]["lexicalCategory"]["text"]
 
 
 ########################################################################################################################
