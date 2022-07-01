@@ -96,9 +96,21 @@ async def cb_get_example_set_word_input(call: types.CallbackQuery, state: FSMCon
     # everything is fine. Write current data example, answer the user, set next step state
     await state.update_data(current_example=user_example)   # it will be switched with the last_example
     answer = text(
-           rf'Cool\! We used your last example: "{user_example[:5]}\.\.\."\.',
+           rf'Cool\! We used your last example:', r'"', italic(f'{user_example[:5]}...'), r'"\.',
            '\nNow write your word ', italic(r'(from 1 to 135 characters long).'))
-    await call.bot.send_message(call.from_user.id, text=answer, parse_mode=ParseMode.MARKDOWN_V2)
+
+    inl_keyboard = types.InlineKeyboardMarkup()
+    inl_buttons = [
+        types.InlineKeyboardButton(text=text(emojize(':ocean: Back  ')), callback_data='call_back_to_add'),
+        types.InlineKeyboardButton(text=text(emojize(':desert_island: Exit ')), callback_data='call_cancel')
+    ]
+    inl_keyboard.add(*inl_buttons)
+
+    await call.bot.send_message(call.from_user.id,
+                                text=answer,
+                                parse_mode=ParseMode.MARKDOWN_V2,
+                                reply_markup=inl_keyboard
+                                )
     await call.answer(show_alert=False)
     await AddingData.waiting_for_word.set()
 
@@ -124,8 +136,32 @@ async def ms_get_example_set_word_input(message: types.Message, state: FSMContex
     await state.update_data(current_example=user_example)   # it will be switched with last_example
     answer = text(
            r'Cool\! Now enter your word', italic('(from 1 to 135 characters long).'))
-    await message.reply(answer, parse_mode=ParseMode.MARKDOWN_V2)
+
+    inl_keyboard = types.InlineKeyboardMarkup()
+    inl_buttons = [
+        types.InlineKeyboardButton(text=text(emojize(':ocean: Back  ')), callback_data='call_back_to_add'),
+        types.InlineKeyboardButton(text=text(emojize(':desert_island: Exit ')), callback_data='call_cancel')
+    ]
+    inl_keyboard.add(*inl_buttons)
+
+    await message.reply(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
     await AddingData.waiting_for_word.set()
+
+
+async def cb_get_word_back_to_add(call: types.CallbackQuery, state: FSMContext):
+    """
+    2 action
+        The user changed his mind about entering a word
+        and decided to return to entering an example
+    """
+    logger.info(f'| {call.from_user.username} | Use back to add call')
+    await call.message.delete_reply_markup()
+
+    txt = text(emojize("Let's take a step back to introduce an example :walking:"))
+    await call.message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2)
+
+    await call.answer(show_alert=False)
+    await add_cmd(message=call.message, state=state)
 
 
 async def ms_get_word_set_description_input(message: types.Message, state: FSMContext):
@@ -149,8 +185,47 @@ async def ms_get_word_set_description_input(message: types.Message, state: FSMCo
     await state.update_data(current_word=user_word)
     answer = text(
            r'Cool\! Now write your description of the word', italic('(from 1 to 400 characters long).'))
-    await message.reply(answer, parse_mode=ParseMode.MARKDOWN_V2)
+
+    inl_keyboard = types.InlineKeyboardMarkup()
+    inl_buttons = [
+        types.InlineKeyboardButton(text=text(emojize(':ocean: Back  ')), callback_data='call_back_to_word'),
+        types.InlineKeyboardButton(text=text(emojize(':desert_island: Exit ')), callback_data='call_cancel')
+    ]
+    inl_keyboard.add(*inl_buttons)
+
+    await message.reply(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
     await AddingData.waiting_for_description.set()
+
+
+async def cb_get_description_back_to_word(call: types.CallbackQuery, state: FSMContext):
+    """
+    3 action
+        The user changed his mind about entering a description
+        and decided to return to entering an word
+    """
+    logger.info(f'| {call.from_user.username} | Use back to word call')
+    await call.message.delete_reply_markup()
+
+    # successfully accepted the command
+    txt = text(emojize("Let's take a step back to introduce an word :walking:"))
+    await call.message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2)
+
+    # clone the response from ms_get_example_set_word_input
+    answer = text(
+           r'Cool\! Now enter your word', italic('(from 1 to 135 characters long).'))
+
+    inl_keyboard = types.InlineKeyboardMarkup()
+    inl_buttons = [
+        types.InlineKeyboardButton(text=text(emojize(':ocean: Back  ')), callback_data='call_back_to_add'),
+        types.InlineKeyboardButton(text=text(emojize(':desert_island: Exit ')), callback_data='call_cancel')
+    ]
+    inl_keyboard.add(*inl_buttons)
+
+    await call.message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
+
+    # set the correct state (text from 2 steps back, state from previous(1 step) back)
+    await call.answer(show_alert=False)
+    await AddingData.waiting_for_word.set()
 
 
 async def ms_get_description_write_data_to_sql(message: types.Message, state: FSMContext):
@@ -216,27 +291,12 @@ async def ms_get_description_write_data_to_sql(message: types.Message, state: FS
            bold('\n\tWord'), ' : ', italic(fr'{word}'),
            bold('\n\tDescription'), ' : ', italic(fr'{description}'))
     inl_keyboard = types.InlineKeyboardMarkup()
-    inl_button = [
+    inl_buttons = [
         types.InlineKeyboardButton(text=text(emojize(':man_surfing: Continue ')), callback_data='call_add'),
         types.InlineKeyboardButton(text=text(emojize(':desert_island: Exit ')), callback_data='call_cancel')]
-    inl_keyboard.add(*inl_button)
+    inl_keyboard.add(*inl_buttons)
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
     await AddingData.waiting_for_next_move.set()
-
-
-async def cb_cancel(call: types.CallbackQuery, state: FSMContext):
-    """
-    4 action
-        exit call works as a /cancel from common
-        but only if state is AddingData.waiting_for_next_move
-    """
-    logger.info(f'| {call.from_user.username} | Use cancel call')
-
-    await call.message.delete_reply_markup()
-    txt = text(r'Main menu with available commands\: /help')
-    await call.message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2)
-    await call.answer(show_alert=False)
-    await state.reset_state(with_data=False)
 
 
 async def cb_delegate_add(call: types.CallbackQuery, state: FSMContext):
@@ -250,6 +310,20 @@ async def cb_delegate_add(call: types.CallbackQuery, state: FSMContext):
     await call.message.delete_reply_markup()
     await call.answer(show_alert=False)
     await add_cmd(message=call.message, state=state)
+
+
+async def cb_cancel(call: types.CallbackQuery, state: FSMContext):
+    """
+    independent action
+        exit call works as a /cancel
+    """
+    logger.info(f'| {call.from_user.username} | Use cancel call')
+
+    await call.message.delete_reply_markup()
+    txt = text(r'Main menu with available commands\: /help')
+    await call.message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2)
+    await call.answer(show_alert=False)
+    await state.reset_state(with_data=False)
 
 
 def get_word_category(word: str, default='-', url=URL_OXF) -> str:
@@ -288,16 +362,26 @@ def register_adding_handlers(dp: Dispatcher):
     dp.register_message_handler(ms_get_example_set_word_input,
                                 state=AddingData.waiting_for_example)
 
+    dp.register_callback_query_handler(
+        cb_get_word_back_to_add,
+        Text(equals='call_back_to_add'),
+        state=AddingData.waiting_for_word
+    )
     dp.register_message_handler(ms_get_word_set_description_input,
                                 state=AddingData.waiting_for_word)
 
+    dp.register_callback_query_handler(
+        cb_get_description_back_to_word,
+        Text(equals='call_back_to_word'),
+        state=AddingData.waiting_for_description
+    )
     dp.register_message_handler(ms_get_description_write_data_to_sql,
                                 state=AddingData.waiting_for_description)
 
     dp.register_callback_query_handler(
         cb_cancel,
         Text(equals='call_cancel'),
-        state=AddingData.waiting_for_next_move
+        state='*'
     )
     dp.register_callback_query_handler(
         cb_delegate_add,
