@@ -1,6 +1,9 @@
+import collections
 import datetime
 import logging
+import random
 import sys
+import time
 
 import sqlalchemy
 import mysql.connector
@@ -199,6 +202,87 @@ def add_word(word: str, description: str, category: str, rating: int, example: U
     session.commit()
     logger.info(f'| {word, example.ex_id} | word successfully added')
 
+
+########################################################################################################################
+# lessons.py functions
+# *get id - give all the words of the user
+def get_user(tg_id: int):
+    return session.query(Users).filter_by(tg_id=tg_id).first()
+
+
+fake = get_user(341677393993011)
+my_friend = get_user(1403092873)
+
+###########################################
+time_start = time.process_time()
+print('start >>> ', time_start)
+
+me = get_user(341677011)
+WordItem = collections.namedtuple('WordItem', 'tg_id, word, description, example, category, rating, word_obj')
+
+words = [WordItem(exx.user_tg_id, word.word, word.description, exx.example, word.category, word.rating, word)
+          for exx in me.exxs for word in exx.words]    # * itertools it
+
+# words.sort(key=lambda word: word[-2])
+words.sort(key=lambda word: word.rating)
+
+# the most difficult words are better learned 1/3(5):
+# 1 - 3 when repeated at the beginning (as a work on mistakes)
+# 14 - 15 and as the last tasks (like a boss in a video game, so that the player has fun after passing)
+difficult_words = words[:5]
+random.shuffle(difficult_words)
+print(f'\nDIFWORDS >>> {difficult_words}')
+# The rest of the words are simple 2/3(10)
+remaining_words = words[5:]
+random.shuffle(remaining_words)
+easy_words = remaining_words[:10]
+print(f'\nEASWORDS >>> {easy_words}')
+
+words_for_test = collections.deque(
+    iterable=difficult_words[:3] + easy_words + difficult_words[3:],
+    maxlen=15
+)
+print(f'\nDEQUE >>> {words_for_test}')
+
+
+# Let's make data for the test (where there will be correct and wrong answers)
+data_for_test = []
+for i in range(len(words_for_test)):     # 15
+    random.shuffle(words)     # I mix each time, to improve accident
+    print()
+    test_words = []           # 4 words, in the first place is always correct
+
+    right_word = words_for_test.popleft()     # in order
+    test_words.append(right_word)
+
+    for word in words:
+        if len(test_words) == 4:    # 4 words
+            break
+        if word not in test_words and word.category == right_word.category:
+            # the best learning effect is when the words are not just random, but belong to the same part of speech ...
+            wrong_word = word
+            test_words.append(wrong_word)
+
+    if len(test_words) != 4:     # ... but the user does not always have enough words ...
+        for word in words:
+            if len(test_words) == 4:
+                break
+            if word not in test_words:
+                # therefore, fill in the missing ones in order, random.shuffle at the beginning will prevent repetitions
+                wrong_word = word
+                test_words.append(wrong_word)
+
+    data_for_test.append(test_words)
+    print(test_words)
+    print([(i.word, i.category) for i in test_words], '\n')
+
+
+print(data_for_test, '\n')    # [[(ok), (wrong), (wrong), (wrong)],[(),(),(),()],[(),(),(),()],]
+print([[(i[0].word, i[0].category), (i[1].word, i[1].category), (i[2].word, i[2].category), (i[3].word, i[3].category)]
+       for i in data_for_test])
+########################################################
+time_finish = time.process_time()
+print('finish >>> ', time_finish - time_start)
 
 ########################################################################################################################
 # distinct - for words working (like set in python)
