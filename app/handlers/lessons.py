@@ -60,7 +60,7 @@ class MinLenError(TypeError):
     """
 
 
-def get_lesson_data(user: db_worker.Users):
+def get_lesson_data(user: db_worker.Users) -> list:
     """
     independent action
         accepts a db_worker.Users instance (further "user")
@@ -187,9 +187,14 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
 
     await state.update_data(
+        lesson_data=lesson_data,
         task_number=0,
-        lesson_data=lesson_data)
+        first_try=0,
+        mistake=0,
+        total_try=0,
+        current_task=None)
 
+    logger.info(f'{username} Transfer user to the lesson')
     await ConductLesson.waiting_for_task.set()
 
 
@@ -199,14 +204,85 @@ async def ms_get_task_number_issues_task(message: types.Message, state: FSMConte
         check the task number
         complete a lesson | form a current task
     """
-    # If the step - 16 - congratulated the buttons, changed the date of use, installed State, what he would do next.
-    # Accepted Task.
-    # He took out the correct answers (Ignor Register is the same words) according to the ID.
-    # randomized answers.
-    # I printed the answers.
-    # I handed over to the consistent list with the correct (letters, word_input ignore.lower(), ).
-    # State replaced to expect an answer.
-    pass
+    username = message.from_user.username
+    data = await state.get_data()
+    lesson_data = data['lesson_data']
+    task_number = data['task_number']
+    first_try = data['first_try']
+    logger.info(f'{username} lesson {task_number}')
+
+    # user reached the end and ended the lesson
+    if task_number == 15:
+        logger.info(f'{username} Finish lesson')
+        await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)
+
+        # * sql changed the date of use, statistic
+
+        await state.update_data(
+            lesson_data=lesson_data,
+            task_number=0,
+            first_try=0,
+            mistake=0,
+            total_try=0,
+            current_task=None)
+
+        answer = text(
+            bold('End of the lesson'), emojize(':tada:'), '\n',
+            '\n',
+            emojize(':zap:'), italic('Result'), bold(f'{int((first_try / 15) * 100)}%\n'))
+
+        inl_keyboard = types.InlineKeyboardMarkup()
+        inl_buttons = [
+            types.InlineKeyboardButton(text=text(emojize(':person_climbing: Once again')), callback_data='call_lesson'),
+            types.InlineKeyboardButton(text=text(emojize(':snow_capped_mountain: Exit')), callback_data='call_cancel')]
+        inl_keyboard.add(*inl_buttons)
+
+        await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
+        await ConductLesson.waiting_for_next_move.set()
+        return
+
+    # It may be that the user has added the same word with different examples,
+    # in this case there will be several correct answers.
+    # This approach is quite good because the word will be remembered in several contexts
+    current_lesson = lesson_data[task_number]
+    main_correct_word = current_lesson[0]
+    current_lesson_data = {'a': None, 'b': None, 'c': None, 'd': None}
+    AnswerOption = collections.namedtuple('AnswerOption', 'word_obj, is_correct')
+
+    current_words = []
+    correct_pattern = main_correct_word[1].lower().strip()
+    for word in current_lesson:
+        word_pattern = word[1].lower().strip()
+        if word_pattern == correct_pattern:
+            current_words.append(AnswerOption(word, True))
+        else:
+            current_words.append(AnswerOption(word, False))
+
+    random.shuffle(current_words)    # answer options mixed
+    for n, k in enumerate(current_lesson_data.keys()):
+        current_lesson_data[k] = current_words[n]
+
+    answer = text(
+            bold(f"{task_number + 1}"), r'Select the correct description of the word\.', '\n',
+            '\n',
+            r'Word\:', '\n',
+            bold(f'"{main_correct_word[1]}"\n'),
+            '\n',
+            r'Answers\:', '\n',
+            r' a\.', italic(f'{current_lesson_data.get("a").word_obj[2]}\n'),
+            r' b\.', italic(f'{current_lesson_data.get("b").word_obj[2]}\n'),
+            r' c\.', italic(f'{current_lesson_data.get("c").word_obj[2]}\n'),
+            r' d\.', italic(f'{current_lesson_data.get("d").word_obj[2]}\n'),
+            '\n')
+
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True)
+    buttons = ['a', 'b', 'c', 'd']
+    keyboard.add(*buttons)
+    await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=keyboard)
+
+    await state.update_data(
+        current_task=current_lesson_data)
+    await ConductLesson.waiting_for_answer.set()
 
 
 async def ms_get_answer_set_task(message: types.Message, state: FSMContext):
@@ -214,6 +290,15 @@ async def ms_get_answer_set_task(message: types.Message, state: FSMContext):
     2 action
         text
     """
+    username = message.from_user.username
+    data = await state.get_data()
+    task_number = data['task_number']
+    logger.info(f'{username} lesson {task_number} catch answer')
+
+    await message.answer(f'{message.text, data["current_task"]}')
+    await state.update_data(
+        task_number=task_number + 1)
+    await ConductLesson.waiting_for_task.set()
     pass
 
 
@@ -222,3 +307,5 @@ def register_lesson_handlers(dp: Dispatcher):
     logger.info(f'| {dp} | Register lesson handlers')
 
     dp.register_message_handler(lesson_cmd, commands=['lesson'], state='*')
+    dp.register_message_handler(ms_get_task_number_issues_task, state=ConductLesson.waiting_for_task)
+    dp.register_message_handler(ms_get_answer_set_task, state=ConductLesson.waiting_for_answer)
