@@ -76,8 +76,12 @@ async def help_cmd(message: types.Message, state: FSMContext):
         emojize(':blue_book: '), italic('Adding your words:'), '\n'
         r'/add \- begins the process of adding a new word', '\n',
         '\n',
+        emojize(':lower_left_paintbrush: '), italic('Conduct a lesson:'), '\n'
+        r'\(throws an error if you have less than 15 words\)', '\n',
+        r'/lesson \- start classic lesson', '\n',
+        '\n',
         emojize(':gem: '), italic('View admin commands:'), '\n',
-        emojize(r'\(Does not work if you are not an admin :man_genie:\)'), '\n',
+        emojize(r'\(does not work if you are not an admin :man_genie:\)'), '\n',
         r'/admin \- shows the admin panel', '\n',
         sep=''
        )
