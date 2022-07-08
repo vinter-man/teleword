@@ -209,6 +209,25 @@ def get_user(tg_id: int) -> Users | None:
     return session.query(Users).filter_by(tg_id=tg_id).first()
 
 
+def get_word(word_id: int) -> UsersExamplesWords | None:
+    return session.query(UsersExamplesWords).filter_by(word_id=word_id).first()
+
+
+def change_rating(word_id: int, new_rating: int):
+    word = get_word(word_id)
+
+    if not word:
+        logger.warning(f'| {word_id} | no word with user word_id')
+        raise KeyError(f'{word_id}')
+
+    old_rating = word.rating
+    word.rating = new_rating
+    session.add(word)
+    session.commit()
+    logger.info(f'changed word rating {old_rating} >>> {new_rating}')
+
+
+
 ########################################################################################################################
 # distinct - for words working (like set in python)
 # CONCAT - concatenate two or more text values and returns the concatenating string CONCAT('name', ', ', 'lastname')

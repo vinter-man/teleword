@@ -91,7 +91,7 @@ def get_lesson_data(user: db_worker.Users) -> list:
     words_len = len(words)
     if words_len < 15:
         raise MinLenError(f"{words_len}")
-    words.sort(key=lambda word: word['rating'])
+    words.sort(key=lambda word: word['rating'], reverse=True)
 
     # the most difficult words are better learned 1/3(5):
     # 1 - 3 when repeated at the beginning (as a work on mistakes)
@@ -176,6 +176,7 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
     """
     username = message.from_user.username
     logger.info(f'{username} Start lesson')
+    logger.info(f'{username} Start lesson {message}')
     await state.reset_state(with_data=False)
 
     answer = text(
@@ -183,9 +184,11 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
 
     await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)  # comfortable waiting
-    user_db = db_worker.get_user(tg_id=message.from_user.id)
+    logger.info(f'{message.from_user.id}')
+    user_db = db_worker.get_user(tg_id=message.chat.id)
 
     try:
+        logger.info(f'{user_db}')
         lesson_data = get_lesson_data(user_db)
     except MinLenError as e:
         logger.info(f'{username} Not enough words for lesson')
@@ -197,8 +200,8 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
     except Exception as e:
         logger.error(f'{username} Houston, we have got a problem {e, user_db}')
         answer = text(
-                emojize(r":oncoming police car: There was a big trouble when compiling your test, "
-                        r"please write to the administrator\."))
+                emojize(":oncoming_police_car:"), r"There was a big trouble when compiling your test\, "
+                                                                           r"please write to the administrator\.")
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         return
 
@@ -233,7 +236,9 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
         first_try=0,
         mistake=0,
         total_try=0,
-        current_task=None)
+        current_task=None,
+        lesson_stats=[],
+    )
 
     logger.info(f'{username} Transfer user to the lesson')
     await ConductLesson.waiting_for_task.set()
@@ -251,12 +256,13 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
     lesson_data = data['lesson_data']
     task_number = data['task_number']
     first_try = data['first_try']
+    lesson_stats = data['lesson_stats']
     logger.info(f'{username} lesson {task_number}')
 
+    ###########################################
     # user reached the end and ended the lesson
     if task_number == 15:
-        success_percentage = int((first_try / 15) * 100)
-        logger.info(f'{username} Finish lesson {success_percentage}%')
+        logger.info(f'{username} Finish lesson')
 
         answer = text(
             bold('You have successfully coped!\n'),
@@ -267,6 +273,22 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
         await call.message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
         await call.message.bot.send_chat_action(call.from_user.id, ChatActions.TYPING)
 
+        first_try = 0
+        for word_stat_data in lesson_stats:
+            if word_stat_data['attempts'] == 1:
+                first_try += 1
+            try:
+                db_worker.change_rating(
+                    word_id=word_stat_data['sql_id'],
+                    new_rating=word_stat_data['current_rating']
+                )
+            except KeyError as e:
+                logger.error(f'{username} sql error {e}')
+            except Exception as e:
+                logger.error(f'{username} unknown sql error {e}')
+
+        success_percentage = int((first_try / 15) * 100)
+
         # * sql changed the date of use, statistic
 
         await state.update_data(
@@ -275,7 +297,8 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
             first_try=0,
             mistake=0,
             total_try=0,
-            current_task=None)
+            current_task=None,
+            lesson_stats=[])
 
         answer = text(
             bold('End of the lesson'), emojize(':tada:'), '\n',
@@ -292,6 +315,8 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
         await ConductLesson.waiting_for_next_move.set()
         return
 
+    ###########################################
+    # user did not finish the lesson
     current_lesson = lesson_data[task_number]
     main_correct_word = None
     for w in current_lesson.values():
@@ -299,6 +324,17 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
             main_correct_word = w
             break
 
+    main_word_stat = data.get('main_word_stat', None)
+    if main_word_stat:     # so the user is redirected here due to the wrong answer
+        statistic_data_main_correct_word = main_word_stat
+    else:                  # so before that there were no attempts
+        statistic_data_main_correct_word = {
+            'sql_id': main_correct_word['word_id'],
+            'current_rating': main_correct_word['rating'],
+            'attempts': 0,
+            'mistakes': 0
+
+        }
     logger.info(f'{username} task {main_correct_word["word"]}')
 
     if task_number % 2 == 0:    # All even steps will be tasks of the type to determine the correct word description
@@ -347,16 +383,19 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
     keyboard.add(*buttons)
     await call.message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=keyboard)
 
+    await state.update_data(
+        main_word_stat=statistic_data_main_correct_word,
+        current_task=current_lesson
+    )
+
     if task_flag == 'define the correct word':
         logger.info(f'{username} Move the user to the state of giving word-answers')
         await state.update_data(
-            current_task=current_lesson,
             task_type='choose_the_word'
         )
     elif task_flag == 'determine the correct word description':
         logger.info(f'{username} Move the user to the state of giving description-answers')
         await state.update_data(
-            current_task=current_lesson,
             task_type='choose_the_description'
         )
 
@@ -374,8 +413,17 @@ async def ms_get_answer_set_task(message: types.Message, state: FSMContext):
     data = await state.get_data()
     task_number = data['task_number']
     task_type = data['task_type']
-    current_task = data["current_task"]
+    current_task = data['current_task']
+
+    main_word_stat = data['main_word_stat']
+    lesson_stats = data['lesson_stats']
+    current_attempt_count = main_word_stat['attempts']
+    current_mistake_count = main_word_stat['mistakes']
+    current_word_rating = main_word_stat['current_rating']
+
     logger.info(f'{username} lesson {task_number} catch answer {answer}')
+
+    current_attempt_count += 1
 
     # 0. depending on what type of task - you need to determine what is considered the correct user input and then
     # convert this input to a dictionary key
@@ -433,6 +481,7 @@ async def ms_get_answer_set_task(message: types.Message, state: FSMContext):
     user_answer_data = current_task[answer]
     if user_answer_data["is_correct"]:
         logger.info(f'{username} Correct answer {answer}')
+        current_word_rating -= 1
         notification = 'Well done!,Super!,Cool!,Excellent!,' \
                        'Perfect!,Great!,Fabulous!,Correctly!,Right!'.split(',')
         answer = text(
@@ -452,12 +501,24 @@ async def ms_get_answer_set_task(message: types.Message, state: FSMContext):
         await state.update_data(
             task_number=task_number + 1)
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
+
+        main_word_stat['attempts'] = current_attempt_count
+        main_word_stat['mistakes'] = current_mistake_count
+        main_word_stat['current_rating'] = current_word_rating
+        lesson_stats.append(main_word_stat)
+        await state.update_data(
+            main_word_stat=None,
+            lesson_stats=lesson_stats
+        )
+
         await ConductLesson.waiting_for_task.set()
 
     else:
         logger.info(f'{username} Incorrect answer {answer}')
+        current_mistake_count += 1
+        current_word_rating += 1
         notification = 'Mistakes teach!,Mistakes are the best teacher!,Dont be upset!,Incorrect answer.,' \
-                       'Now you will remember thi s!,We learn from failure not from success!'.split(",")
+                       'Now you will remember this!,We learn from failure not from success!'.split(",")
         answer = text(
             bold(f'{random.choice(notification)}\n'),
             bold('\n\tExample'), ' : ', italic(f'{user_answer_data["example"]}'),
@@ -473,6 +534,14 @@ async def ms_get_answer_set_task(message: types.Message, state: FSMContext):
 
         logger.info(f'{username} Return the user to the question {task_number} >>> {task_number}')
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
+
+        main_word_stat['attempts'] = current_attempt_count
+        main_word_stat['mistakes'] = current_mistake_count
+        main_word_stat['current_rating'] = current_word_rating
+        await state.update_data(
+            main_word_stat=main_word_stat
+        )
+
         await ConductLesson.waiting_for_task.set()
 
 
@@ -483,8 +552,9 @@ async def cb_get_call_to_lesson(call: types.CallbackQuery, state: FSMContext):
     """
     username = call.from_user.username
     logger.info(f'{username} Send call with /lesson command')
+    logger.info(f'{username} Send call with /lesson command {call.message}')
 
-    await call.message.delete_reply_markup()
+    # await call.message.delete_reply_markup()
     await call.answer(show_alert=False)
     await lesson_cmd(message=call.message, state=state)
 
@@ -506,5 +576,6 @@ def register_lesson_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(
         cb_get_call_to_lesson,
         Text(equals='call_lesson'),
-        state=ConductLesson.waiting_for_next_move
+        state='*'
+        # state=ConductLesson.waiting_for_next_move
     )
