@@ -176,19 +176,17 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
     """
     username = message.from_user.username
     logger.info(f'{username} Start lesson')
-    logger.info(f'{username} Start lesson {message}')
     await state.reset_state(with_data=False)
 
     answer = text(
         emojize(r":person_in_lotus_position: Wait until we prepare a lesson for you \- it can take some time\.\.\."))
-    await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+    remove_keyboard = types.ReplyKeyboardRemove()
+    await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
 
     await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)  # comfortable waiting
-    logger.info(f'{message.from_user.id}')
     user_db = db_worker.get_user(tg_id=message.chat.id)
 
     try:
-        logger.info(f'{user_db}')
         lesson_data = get_lesson_data(user_db)
     except MinLenError as e:
         logger.info(f'{username} Not enough words for lesson')
@@ -287,7 +285,13 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
             except Exception as e:
                 logger.error(f'{username} unknown sql error {e}')
 
+        await call.message.bot.send_chat_action(call.from_user.id, ChatActions.TYPING)
         success_percentage = int((first_try / 15) * 100)
+
+        try:
+            db_worker.change_user_last_using(call.message.chat.id)
+        except Exception as e:
+            logger.error(f'{username} unknown sql error {e}')
 
         # * sql changed the date of use, statistic
 
@@ -552,9 +556,8 @@ async def cb_get_call_to_lesson(call: types.CallbackQuery, state: FSMContext):
     """
     username = call.from_user.username
     logger.info(f'{username} Send call with /lesson command')
-    logger.info(f'{username} Send call with /lesson command {call.message}')
 
-    # await call.message.delete_reply_markup()
+    await call.message.delete_reply_markup()
     await call.answer(show_alert=False)
     await lesson_cmd(message=call.message, state=state)
 
@@ -576,6 +579,5 @@ def register_lesson_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(
         cb_get_call_to_lesson,
         Text(equals='call_lesson'),
-        state='*'
-        # state=ConductLesson.waiting_for_next_move
+        state=ConductLesson.waiting_for_next_move
     )

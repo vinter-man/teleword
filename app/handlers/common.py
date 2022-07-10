@@ -49,7 +49,8 @@ async def start_cmd(message: types.Message, state: FSMContext):
 
     await state.reset_state(with_data=False)
     txt = text(r"Let's start\!", " I'm waiting from you commands\n\nMore about commands: /help")
-    await message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2)
+    remove_keyboard = types.ReplyKeyboardRemove()
+    await message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
 
 
 async def cancel_cmd(message: types.Message, state: FSMContext):
@@ -57,7 +58,8 @@ async def cancel_cmd(message: types.Message, state: FSMContext):
     await state.reset_state(with_data=False)
     txt = text(r'Action canceled\.', '\n',
                r'Menu with available commands\: /help')
-    await message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2)
+    remove_keyboard = types.ReplyKeyboardRemove()
+    await message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
 
 
 async def help_cmd(message: types.Message, state: FSMContext):
@@ -85,7 +87,8 @@ async def help_cmd(message: types.Message, state: FSMContext):
         r'/admin \- shows the admin panel', '\n',
         sep=''
        )
-    await message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2)
+    remove_keyboard = types.ReplyKeyboardRemove()
+    await message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
 
 
 #####################################################################
@@ -97,7 +100,8 @@ async def admin_panel_cmd(message: types.Message, state: FSMContext):
                 "/admin", italic(" >>> show admin panel"),
                 "/admin_show_bl", italic(" >>> send current black list"),
     )
-    await message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2)
+    remove_keyboard = types.ReplyKeyboardRemove()
+    await message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
 
 
 async def admin_show_bl_cmd(message: types.Message, state: FSMContext):

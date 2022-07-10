@@ -64,7 +64,8 @@ async def add_cmd(message: types.Message, state: FSMContext):
             bold('\n\tWord'), ' : ', italic(r'Arrow;'),
             bold('\n\tDescription'), ' : ', italic(r'A weapon consisting of a thin, straight stick '
                                                    r'with a sharp point, designed to be shot from a bow.'))
-    await message.answer(answer1, parse_mode=ParseMode.MARKDOWN_V2)
+    remove_keyboard = types.ReplyKeyboardRemove()
+    await message.answer(answer1, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
 
     answer2 = text(
             emojize(r":rocket: Let's start\! Send me your example"), italic('(from 5 to 400 characters).'))
@@ -321,7 +322,12 @@ async def cb_cancel(call: types.CallbackQuery, state: FSMContext):
 
     await call.message.delete_reply_markup()
     txt = text(r'Main menu with available commands\: /help')
-    await call.message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2)
+    remove_keyboard = types.ReplyKeyboardRemove()
+    await call.message.answer(
+        txt,
+        parse_mode=ParseMode.MARKDOWN_V2,
+        reply_markup=remove_keyboard
+    )
     await call.answer(show_alert=False)
     await state.reset_state(with_data=False)
 
