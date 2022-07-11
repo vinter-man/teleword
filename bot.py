@@ -2,6 +2,7 @@ import asyncio
 import logging
 import sys
 import time
+from sqlalchemy import exc
 
 import aiogram.utils.exceptions
 from aiogram import Bot, Dispatcher
@@ -67,4 +68,8 @@ while True:
     except aiogram.utils.exceptions.NetworkError as e:
         second = 2.5
         logger.error(f'NetworkError. Restart after {second} (sec.) \n\n{e}\n\n')
+        time.sleep(second)
+    except exc.DatabaseError as e:
+        second = 0.5
+        logger.error(f'MySQL server NetworkError. Restart after {second} (sec.) \n\n{e}\n\n')
         time.sleep(second)

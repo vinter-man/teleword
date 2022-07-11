@@ -268,7 +268,7 @@ async def ms_get_description_write_data_to_sql(message: types.Message, state: FS
     # work with sql tables 'examples' -> 'words'
     user_example = db_worker.add_example(
         example_text=example,
-        user_tg_id=message.from_user.id
+        user_tg_id=str(message.from_user.id)
     )
     user_word = db_worker.add_word(
         word=word,

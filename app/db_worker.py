@@ -37,10 +37,12 @@ Base = declarative_base()    # this guy will set the trend :)
 class Users(Base):
     __tablename__ = 'users'
 
-    tg_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    user_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True, nullable=False)
+    tg_id = sqlalchemy.Column(sqlalchemy.String(20))
     nickname = sqlalchemy.Column(sqlalchemy.String(250), nullable=False)
     lang_code = sqlalchemy.Column(sqlalchemy.String(10), nullable=False)
     shock_mode = sqlalchemy.Column(sqlalchemy.Integer, default=0)
+    points = sqlalchemy.Column(sqlalchemy.Integer, default=0)
     is_blacklisted = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
     is_bot = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
     creation_time = sqlalchemy.Column(sqlalchemy.String(20), nullable=False)
@@ -56,13 +58,14 @@ class UsersExamples(Base):
 
     ex_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True, nullable=False)
     example = sqlalchemy.Column(sqlalchemy.String(400), nullable=False)
-    user_tg_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.tg_id'), nullable=False)
+    user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.user_id'), nullable=False)
 
     words = relationship('UsersExamplesWords', backref='example_words')
 
 
 class UsersExamplesWords(Base):
     __tablename__ = 'words'
+    # word_id - sqlalchemy.Integer -> max 350000 users with 6000 words
     word_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True, nullable=False)
     word = sqlalchemy.Column(sqlalchemy.String(135), nullable=False)
     description = sqlalchemy.Column(sqlalchemy.String(400), nullable=False)
@@ -79,13 +82,12 @@ class UsersStatistics(Base):
     firs_try_success = sqlalchemy.Column(sqlalchemy.Integer)
     mistake = sqlalchemy.Column(sqlalchemy.Integer)
     total = sqlalchemy.Column(sqlalchemy.Integer)
-    user_tg_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.tg_id'))
+    user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.user_id'))
 
 
 ########################################################################################################################
 # create
 Base.metadata.create_all(engine)
-
 
 ########################################################################################################################
 # work with
@@ -104,12 +106,15 @@ def is_user(telegram_id: str) -> bool:
     return True
 
 
-def add_user(tg_id: int, nickname: str, lang_code: str, shock_mode: int, is_blacklisted: bool,
-             is_bot: bool, creation_time: str, last_use_time: str, current_use_time: str):
+def add_user(tg_id: str, nickname: str, lang_code: str, shock_mode: int,
+             points: int, is_blacklisted: bool, is_bot: bool, creation_time: str,
+             last_use_time: str, current_use_time: str):
 
     session.add(Users(
-        tg_id=tg_id, nickname=nickname, lang_code=lang_code, shock_mode=shock_mode, is_blacklisted=is_blacklisted,
-        is_bot=is_bot, creation_time=creation_time, last_use_time=last_use_time, current_use_time=current_use_time
+        tg_id=tg_id, nickname=nickname, lang_code=lang_code,
+        shock_mode=shock_mode, points=points, is_blacklisted=is_blacklisted,
+        is_bot=is_bot, creation_time=creation_time,
+        last_use_time=last_use_time, current_use_time=current_use_time
     ))
     session.commit()
 
@@ -141,7 +146,7 @@ def users_bl_list() -> list:
     return [i for i in session.query(Users).filter_by(is_blacklisted='True').all()]
 
 
-def change_user_bl_status(user_tg_id, change_for: bool):
+def change_user_bl_status(user_tg_id: str, change_for: bool):
 
     user = session.query(Users).filter_by(tg_id=user_tg_id).one()
 
@@ -157,12 +162,15 @@ def change_user_bl_status(user_tg_id, change_for: bool):
 
 ########################################################################################################################
 # adding.py functions
-def add_example(example_text: str, user_tg_id: int) -> UsersExamples:
+def add_example(example_text: str, user_tg_id: str) -> UsersExamples:
     """Adding new example to 'examples' table, return UsersExamples obj"""
+
+    user = get_user(tg_id=user_tg_id)
+    user_id = user.user_id
 
     example_in = session.query(UsersExamples).filter(sqlalchemy.and_(
         UsersExamples.example == example_text,
-        UsersExamples.user_tg_id == user_tg_id
+        UsersExamples.user_id == user_id
     )).first()   # First result | None
     if example_in:      # no need to add
         logger.info(f'| {user_tg_id} | example already added return value')
@@ -170,7 +178,7 @@ def add_example(example_text: str, user_tg_id: int) -> UsersExamples:
 
     example_to_add = UsersExamples(
         example=example_text,
-        user_tg_id=user_tg_id
+        user_id=user_id
     )
     session.add(example_to_add)
     session.commit()
@@ -205,7 +213,7 @@ def add_word(word: str, description: str, category: str, rating: int, example: U
 
 ########################################################################################################################
 # lessons.py functions
-def get_user(tg_id: int) -> Users | None:
+def get_user(tg_id: str) -> Users | None:
     return session.query(Users).filter_by(tg_id=tg_id).first()
 
 
@@ -227,11 +235,13 @@ def change_rating(word_id: int, new_rating: int):
     logger.info(f'changed word rating {old_rating} >>> {new_rating}')
 
 
-def add_or_change_day_stat(tg_id: int, first_try: int, mistakes: int, points=15):
+def add_or_change_day_stat(tg_id: str, first_try: int, mistakes: int, points=15):
     today = str(datetime.date.today())
+    user = get_user(tg_id=tg_id)
+    user_id = user.user_id
 
     day_stat_log = session.query(UsersStatistics).filter(sqlalchemy.and_(
-        UsersStatistics.user_tg_id == tg_id,
+        UsersStatistics.user_id == user_id,
         UsersStatistics.day == today
     )).first()
 
@@ -246,13 +256,16 @@ def add_or_change_day_stat(tg_id: int, first_try: int, mistakes: int, points=15)
             firs_try_success=first_try,
             mistake=mistakes,
             total=points,
-            user_tg_id=tg_id
+            user_id=user_id
         )
         logger.info(f'add day stat f_try {first_try}, mistakes {mistakes}, total {points}...')
 
+    user.points += points
+
     session.add(day_stat_log)
+    session.add(user)
     session.commit()
-    logger.info(f'successes add_or_change_day_stat')
+    logger.info(f'successes add_or_change_day_stat and changing total user points')
 
 
 ########################################################################################################################

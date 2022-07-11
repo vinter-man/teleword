@@ -32,14 +32,15 @@ logging.basicConfig(
 async def start_cmd(message: types.Message, state: FSMContext):
     logger.info(f'|{message.from_user.username}| Use start command')
 
-    if not db_worker.is_user(message.from_user.id):
+    if not db_worker.is_user(str(message.from_user.id)):
         logger.info(f'|{message.from_user.username}| adding new user to "users" table...')
         await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)
         now = str(datetime.date.today())
-        db_worker.add_user(tg_id=message.from_user.id,
+        db_worker.add_user(tg_id=str(message.from_user.id),
                            nickname=message.from_user.username,
                            lang_code=message.from_user.language_code,
                            shock_mode=0,
+                           points=0,
                            is_blacklisted=False,
                            is_bot=bool(message.from_user.is_bot),
                            creation_time=now,

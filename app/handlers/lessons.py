@@ -70,14 +70,13 @@ def get_lesson_data(user: db_worker.Users) -> list:
         makes a sequence of tests depending on the rating of the word
         Adds wrong answers depending on the speech type of the word
         Returns a list filled with 15-lists of 4 words
-        of class namedtuple('WordItem', 'tg_id, word, description, example, category, rating, word_id')
-        where 0 namedtuple is the correct answer
+        of dict {'tg_id', 'word', 'description', 'example', 'category', 'rating', 'word_id', 'is_main'}
     """
     logger.info(f'{user.tg_id} Start get_lesson_data')
 
     words = [
         {
-            'tg_id': exx.user_tg_id,
+            'tg_id': exx.user_id,
             'word': word.word,
             'description': word.description,
             'example': exx.example,
@@ -184,7 +183,7 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
 
     await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)  # comfortable waiting
-    user_db = db_worker.get_user(tg_id=message.chat.id)
+    user_db = db_worker.get_user(tg_id=str(message.chat.id))
 
     try:
         lesson_data = get_lesson_data(user_db)
@@ -292,7 +291,7 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
         # shock mode
         try:
             db_worker.change_user_last_using(
-                user_tg_id=call.message.chat.id
+                user_tg_id=str(call.message.chat.id)
             )
         except Exception as e:
             logger.error(f'{username} unknown sql error {e}')
@@ -300,7 +299,7 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
         # daily statistics
         try:
             db_worker.add_or_change_day_stat(
-                tg_id=call.message.chat.id,
+                tg_id=str(call.message.chat.id),
                 first_try=first_try,
                 mistakes=mistakes,
             )
