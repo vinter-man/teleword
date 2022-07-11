@@ -231,9 +231,6 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
     await state.update_data(
         lesson_data=lesson_data,
         task_number=0,
-        first_try=0,
-        mistake=0,
-        total_try=0,
         current_task=None,
         lesson_stats=[],
     )
@@ -253,7 +250,6 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
     data = await state.get_data()
     lesson_data = data['lesson_data']
     task_number = data['task_number']
-    first_try = data['first_try']
     lesson_stats = data['lesson_stats']
     logger.info(f'{username} lesson {task_number}')
 
@@ -272,9 +268,14 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
         await call.message.bot.send_chat_action(call.from_user.id, ChatActions.TYPING)
 
         first_try = 0
+        mistakes = 0
         for word_stat_data in lesson_stats:
+            # total first attempt
             if word_stat_data['attempts'] == 1:
                 first_try += 1
+            # total mistakes
+            mistakes += word_stat_data['mistakes']
+            # change sql word rating
             try:
                 db_worker.change_rating(
                     word_id=word_stat_data['sql_id'],
@@ -288,19 +289,27 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
         await call.message.bot.send_chat_action(call.from_user.id, ChatActions.TYPING)
         success_percentage = int((first_try / 15) * 100)
 
+        # shock mode
         try:
-            db_worker.change_user_last_using(call.message.chat.id)
+            db_worker.change_user_last_using(
+                user_tg_id=call.message.chat.id
+            )
         except Exception as e:
             logger.error(f'{username} unknown sql error {e}')
 
-        # * sql changed the date of use, statistic
+        # daily statistics
+        try:
+            db_worker.add_or_change_day_stat(
+                tg_id=call.message.chat.id,
+                first_try=first_try,
+                mistakes=mistakes,
+            )
+        except Exception as e:
+            logger.error(f'{username} unknown sql error {e}')
 
         await state.update_data(
             lesson_data=lesson_data,
             task_number=0,
-            first_try=0,
-            mistake=0,
-            total_try=0,
             current_task=None,
             lesson_stats=[])
 
@@ -337,7 +346,6 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
             'current_rating': main_correct_word['rating'],
             'attempts': 0,
             'mistakes': 0
-
         }
     logger.info(f'{username} task {main_correct_word["word"]}')
 

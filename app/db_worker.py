@@ -227,6 +227,33 @@ def change_rating(word_id: int, new_rating: int):
     logger.info(f'changed word rating {old_rating} >>> {new_rating}')
 
 
+def add_or_change_day_stat(tg_id: int, first_try: int, mistakes: int, points=15):
+    today = str(datetime.date.today())
+
+    day_stat_log = session.query(UsersStatistics).filter(sqlalchemy.and_(
+        UsersStatistics.user_tg_id == tg_id,
+        UsersStatistics.day == today
+    )).first()
+
+    if day_stat_log:
+        day_stat_log.firs_try_success += first_try
+        day_stat_log.mistake += mistakes
+        day_stat_log.total += points
+        logger.info(f'change day stat f_try {first_try}, mistakes {mistakes}, total {points}...')
+    else:
+        day_stat_log = UsersStatistics(
+            day=today,
+            firs_try_success=first_try,
+            mistake=mistakes,
+            total=points,
+            user_tg_id=tg_id
+        )
+        logger.info(f'add day stat f_try {first_try}, mistakes {mistakes}, total {points}...')
+
+    session.add(day_stat_log)
+    session.commit()
+    logger.info(f'successes add_or_change_day_stat')
+
 
 ########################################################################################################################
 # distinct - for words working (like set in python)
