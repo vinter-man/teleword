@@ -97,7 +97,7 @@ session = DbSession()
 
 ########################################################################################################################
 ########################################################################################################################
-# common.py functions
+# common.py
 def is_user(telegram_id: str) -> bool:
 
     result = session.query(Users).filter(Users.tg_id == telegram_id).all()
@@ -161,7 +161,7 @@ def change_user_bl_status(user_tg_id: str, change_for: bool):
 
 
 ########################################################################################################################
-# adding.py functions
+# adding.py
 def add_example(example_text: str, user_tg_id: str) -> UsersExamples:
     """Adding new example to 'examples' table, return UsersExamples obj"""
 
@@ -212,7 +212,7 @@ def add_word(word: str, description: str, category: str, rating: int, example: U
 
 
 ########################################################################################################################
-# lessons.py functions
+# lessons.py
 def get_user(tg_id: str) -> Users | None:
     return session.query(Users).filter_by(tg_id=tg_id).first()
 
@@ -266,6 +266,17 @@ def add_or_change_day_stat(tg_id: str, first_try: int, mistakes: int, points=15)
     session.add(user)
     session.commit()
     logger.info(f'successes add_or_change_day_stat and changing total user points')
+
+
+########################################################################################################################
+# statistic.py
+def word_count(user_tg_id: str) -> int:
+    user = get_user(tg_id=user_tg_id)
+    count = 0
+    for example in user.exxs:
+        for word in example.words:
+            count += 1
+    return count
 
 
 ########################################################################################################################

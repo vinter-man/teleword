@@ -13,6 +13,7 @@ from config import config
 from app.handlers.common import register_handlers_common
 from app.handlers.adding import register_adding_handlers
 from app.handlers.lessons import register_lesson_handlers
+from app.handlers.statistic import register_statistic_handlers
 
 
 logger = logging.getLogger(__name__)
@@ -49,8 +50,7 @@ async def main():
     register_handlers_common(dp, config.ADMIN_ID_TG)
     register_adding_handlers(dp)
     register_lesson_handlers(dp)
-    # register_handlers_drinks(dp)
-    # register_handlers_food(dp)
+    register_statistic_handlers(dp)
 
     # Setting commands
     await set_commands(bot)
