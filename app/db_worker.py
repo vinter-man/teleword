@@ -279,6 +279,34 @@ def word_count(user_tg_id: str) -> int:
     return count
 
 
+def get_user_stat(user_tg_id: str, limit: int = 7) -> list:
+    return list(session.query(UsersStatistics).filter_by(user_id=get_user(user_tg_id).user_id).limit(limit))
+
+
+def build_total_mistakes_firsttry_data_for_graph(user_sql_logs: list, future_length: int = 7) -> dict:
+
+    result_dict = {
+        "total": [0] * future_length,
+        "mistakes": [0] * future_length,
+        "first_try": [0] * future_length
+    }
+
+    today = datetime.date.today()
+    for stat in user_sql_logs:
+        stat_date = datetime.date.fromisoformat(stat.day)
+        difference = today - stat_date
+        difference = int(difference.days)
+        if difference > future_length:     # old record
+            continue
+        else:
+            place = (future_length - difference) - 1
+            result_dict.get("total")[place] = stat.total
+            result_dict.get("mistakes")[place] = stat.mistake
+            result_dict.get("first_try")[place] = stat.firs_try_success
+
+    return result_dict
+
+
 ########################################################################################################################
 # distinct - for words working (like set in python)
 # CONCAT - concatenate two or more text values and returns the concatenating string CONCAT('name', ', ', 'lastname')
