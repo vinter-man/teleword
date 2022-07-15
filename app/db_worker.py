@@ -271,16 +271,17 @@ def add_or_change_day_stat(tg_id: str, first_try: int, mistakes: int, points=15)
 ########################################################################################################################
 # statistic.py
 def word_count(user_tg_id: str) -> int:
-    user = get_user(tg_id=user_tg_id)
-    count = 0
-    for example in user.exxs:
-        for word in example.words:
-            count += 1
-    return count
+    return (session.query(Users, sqlalchemy.func.count(UsersExamples.ex_id))
+                .outerjoin(UsersExamples)
+                .group_by(Users)
+                .outerjoin(UsersExamplesWords)
+                .group_by(Users)
+                .filter(Users.tg_id == user_tg_id)
+            ).one()[1]
 
 
 def get_user_stat(user_tg_id: str, limit: int = 7) -> list:
-    return list(session.query(UsersStatistics).filter_by(user_id=get_user(user_tg_id).user_id).limit(limit))
+    return session.query(UsersStatistics).filter_by(user_id=get_user(user_tg_id).user_id).limit(limit)
 
 
 def build_total_mistakes_firsttry_data_for_graph(user_sql_logs: list, future_length: int = 7) -> dict:

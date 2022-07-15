@@ -134,7 +134,6 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
         return
 
     try:
-        # * write subpartition / sql subquery
         total_words_count = db_worker.word_count(user_tg_id=message.from_user.id)
     except Exception as e:
         logger.error(f'{username} Houston, we have got a problem {e, message.from_user.id}')
@@ -173,7 +172,6 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
             mistakes=graph_data["mistakes"],
             first_try=graph_data["first_try"]
         )
-
     try:
         await message.answer_photo(
             photo=open(photo, 'rb'),
@@ -190,7 +188,6 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
         if photo != "backup_graph":
             os.remove(photo)
             logger.info(f'{username} Graph {photo} successfully removed')
-
     logger.info(f'{username} Statistical data successfully sent to the user')
 
 
