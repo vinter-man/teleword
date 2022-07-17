@@ -254,6 +254,9 @@ async def ms_get_description_write_data_to_sql(message: types.Message, state: FS
     answer = text(
            r'Cool\!')
     await message.reply(answer, parse_mode=ParseMode.MARKDOWN_V2)
+    answer = text(
+        r'Writing your data to the database \- this may take some time', emojize(':hourglass_flowing_sand:'))
+    await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
     await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)  # comfortable waiting for the user
 
     data = await state.get_data()

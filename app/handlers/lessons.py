@@ -61,7 +61,7 @@ class MinLenError(TypeError):
     """
 
 
-def get_lesson_data(user: db_worker.Users) -> list:
+def get_lesson_data(tg_id: str) -> list:
     """
     independent action
         accepts a db_worker.Users instance (further "user")
@@ -72,21 +72,8 @@ def get_lesson_data(user: db_worker.Users) -> list:
         Returns a list filled with 15-lists of 4 words
         of dict {'tg_id', 'word', 'description', 'example', 'category', 'rating', 'word_id', 'is_main'}
     """
-    logger.info(f'{user.tg_id} Start get_lesson_data')
-
-    words = [
-        {
-            'tg_id': exx.user_id,
-            'word': word.word,
-            'description': word.description,
-            'example': exx.example,
-            'category': word.category,
-            'rating': word.rating,
-            'word_id': word.word_id,
-            'is_main': False
-        }
-        for exx in user.exxs for word in exx.words
-    ]  # * itertools it
+    logger.info(f'{tg_id} Start get_lesson_data')
+    words = db_worker.get_words_data(user_tg_id=tg_id)
     words_len = len(words)
     if words_len < 15:
         raise MinLenError(f"{words_len}")
@@ -101,12 +88,10 @@ def get_lesson_data(user: db_worker.Users) -> list:
     remaining_words = words[5:]
     random.shuffle(remaining_words)
     easy_words = remaining_words[:10]
-
     words_for_lesson = collections.deque(
         iterable=difficult_words[:3] + easy_words + difficult_words[3:],
         maxlen=15
     )
-
     data_for_lesson = []
     # data for the test 15 tests (1 correct and 3 wrong answers)
     for i in range(len(words_for_lesson)):
@@ -163,8 +148,7 @@ def get_lesson_data(user: db_worker.Users) -> list:
         ready_tasks.append(current_lesson_data)
 
     # [{aw, bw, cw, dw}, {}, {}, {}, ...]
-
-    logger.info(f'{user.nickname} Return data for lesson')
+    logger.info(f'{tg_id} Return data for lesson')
     return ready_tasks
 
 
@@ -183,10 +167,9 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
 
     await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)  # comfortable waiting
-    user_db = db_worker.get_user(tg_id=str(message.chat.id))
 
     try:
-        lesson_data = get_lesson_data(user_db)
+        lesson_data = get_lesson_data(str(message.chat.id))
     except MinLenError as e:
         logger.info(f'{username} Not enough words for lesson')
         answer = text(
@@ -195,7 +178,7 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         return
     except Exception as e:
-        logger.error(f'{username} Houston, we have got a problem {e, user_db}')
+        logger.error(f'{username} Houston, we have got a problem {e}')
         answer = text(
                 emojize(":oncoming_police_car:"), r"There was a big trouble when compiling your test\, "
                                                                            r"please write to the administrator\.")

@@ -268,6 +268,32 @@ def add_or_change_day_stat(tg_id: str, first_try: int, mistakes: int, points=15)
     logger.info(f'successes add_or_change_day_stat and changing total user points')
 
 
+def get_words_data(user_tg_id: str) -> list:
+    sql_query = engine.execute(
+        " SELECT "
+        "examples.user_id, words.word, words.description, examples.example, words.category, words.rating, words.word_id"
+        " FROM users"
+        " LEFT JOIN examples ON examples.user_id = users.user_id"
+        " LEFT JOIN words ON words.example_id = examples.ex_id"
+        " WHERE users.tg_id = '{0}'".format(user_tg_id)
+    )
+    words = [
+        {
+            'tg_id': i.user_id,
+            'word': i.word,
+            'description': i.description,
+            'example': i.example,
+            'category': i.category,
+            'rating': i.rating,
+            'word_id': i.word_id,
+            'is_main': False
+        }
+        for i in sql_query
+    ]
+    logger.info(f'{user_tg_id} Successes return words data')
+    return words
+
+
 ########################################################################################################################
 # statistic.py
 def word_count(user_tg_id: str) -> int:
