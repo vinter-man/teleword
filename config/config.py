@@ -11,3 +11,6 @@ MY_SQL = 'mysql+mysqlconnector://login:psw@ip/db'   # hetzner 1111
 APP_ID_OXF = '111111'
 APP_KEY_OXF = '111111111111111111111111'    # "App" oxforddictionaries
 URL_OXF = 'https://od-api.oxforddictionaries.com/api/v2/entries/en-gb/'
+
+# Graph part:
+BACKUP_GRAPH = r'config\backup_graph.png'
