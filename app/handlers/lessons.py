@@ -274,7 +274,8 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
         # shock mode
         try:
             db_worker.change_user_last_using(
-                user_tg_id=str(call.message.chat.id)
+                user_tg_id=str(call.message.chat.id),
+                flag='change'
             )
         except Exception as e:
             logger.error(f'{username} unknown sql error {e}')

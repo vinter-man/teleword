@@ -119,7 +119,7 @@ def add_user(tg_id: str, nickname: str, lang_code: str, shock_mode: int,
     session.commit()
 
 
-def change_user_last_using(user_tg_id: str):
+def change_user_last_using(user_tg_id: str, flag: str = 'change'):
 
     user = session.query(Users).filter_by(tg_id=user_tg_id).one()
     user.current_use_time = str(datetime.date.today())
@@ -127,9 +127,9 @@ def change_user_last_using(user_tg_id: str):
     difference = datetime.date.fromisoformat(user.current_use_time) - datetime.date.fromisoformat(user.last_use_time)
     difference = int(difference.days)
 
-    if not difference:
+    if not difference or (difference == 1 and flag == 'check'):
         logger.info(f'| {user_tg_id} | no different user using time')
-    elif difference == 1:
+    elif difference == 1 and flag == 'change':
         logger.info(f'| {user_tg_id} | shock_mode +1 day')
         user.shock_mode += 1
         user.last_use_time = user.current_use_time
@@ -275,7 +275,7 @@ def get_words_data(user_tg_id: str) -> list:
         " FROM users"
         " LEFT JOIN examples ON examples.user_id = users.user_id"
         " LEFT JOIN words ON words.example_id = examples.ex_id"
-        " WHERE users.tg_id = '{0}'".format(user_tg_id)
+        " WHERE users.tg_id = '{}'".format(user_tg_id)
     )
     words = [
         {
@@ -323,7 +323,7 @@ def build_total_mistakes_firsttry_data_for_graph(user_sql_logs: list, future_len
         stat_date = datetime.date.fromisoformat(stat.day)
         difference = today - stat_date
         difference = int(difference.days)
-        if difference > future_length:     # old record
+        if difference >= future_length:     # old record
             continue
         else:
             place = (future_length - difference) - 1
@@ -342,5 +342,4 @@ def build_total_mistakes_firsttry_data_for_graph(user_sql_logs: list, future_len
 # SUB-QUERIES >>>
 # >>> SELECT FirstName, Salary FROM employees WHERE  Salary > (SELECT AVG(Salary) FROM employees) ORDER BY Salary DESC;
 # all 3 relationship!
-# AUTO_INCREMENT for primary keys
 # The ALTER TABLE command is used to add(ADD), delete(DROP COLUMN), or modify(RENAME) columns in an existing table.

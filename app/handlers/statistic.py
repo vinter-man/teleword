@@ -24,6 +24,8 @@ from aiogram.utils.markdown import text, bold, italic, code, pre
 from aiogram.utils.emoji import emojize
 from aiogram.types import ParseMode, InputMediaPhoto, InputMediaVideo, ChatActions
 from aiogram.dispatcher.filters import Text
+
+from config.config import BACKUP_GRAPH
 from config.config import APP_KEY_OXF, APP_ID_OXF, URL_OXF
 
 from .. import db_worker
@@ -124,6 +126,14 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
     await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)
 
     try:
+        db_worker.change_user_last_using(
+            user_tg_id=str(message.from_user.id),
+            flag='check'
+        )
+    except Exception as e:
+        logger.error(f'{username} unknown sql error {e}')
+
+    try:
         user = db_worker.get_user(tg_id=message.from_user.id)
     except Exception as e:
         logger.error(f'{username} Houston, we have got a problem {e, message.from_user.id}')
@@ -163,7 +173,7 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
         )
     except Exception as e:
         logger.error(f'{username} Houston, we have got a unknown sql problem {e}')
-        photo = "backup_graph"
+        photo = BACKUP_GRAPH
     else:
         photo = build_graph(
             user_id=str(message.from_user.id),
@@ -185,7 +195,7 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
             parse_mode=ParseMode.MARKDOWN_V2,
         )
     finally:
-        if photo != "backup_graph":
+        if photo != BACKUP_GRAPH:
             os.remove(photo)
             logger.info(f'{username} Graph {photo} successfully removed')
     logger.info(f'{username} Statistical data successfully sent to the user')
