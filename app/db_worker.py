@@ -335,11 +335,4 @@ def build_total_mistakes_firsttry_data_for_graph(user_sql_logs: list, future_len
 
 
 ########################################################################################################################
-# distinct - for words working (like set in python)
-# CONCAT - concatenate two or more text values and returns the concatenating string CONCAT('name', ', ', 'lastname')
-# AS - SELECT CONCAT(FirstName,', ', City) AS new_column
-# UPPER LOWER SQRT AVG SUM
-# SUB-QUERIES >>>
-# >>> SELECT FirstName, Salary FROM employees WHERE  Salary > (SELECT AVG(Salary) FROM employees) ORDER BY Salary DESC;
-# all 3 relationship!
-# The ALTER TABLE command is used to add(ADD), delete(DROP COLUMN), or modify(RENAME) columns in an existing table.
+# checking.py

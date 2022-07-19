@@ -1,21 +1,3 @@
-"""
-SMALL TEST PART (simple)
-1 testing for user
-2 collecting information about today's date, errors, solutions on the first try
-3 correct information writing ()
-
-update the date during the test so that there is no such thing that it started at 23:59, finished tomorrow and it
-incorrectly counted the system
-
-if the user resets by start or cancel - the date must already be recorded
-
-everything should, unlike writing new words, be written instantly and dynamically,
-
-however, the set of words of ratings, etc. must be unchanged from the start of the test
-
-first, the current list is compiled (completely ready) - then there are tests - and the system records everything
-dynamically
-"""
 import asyncio
 import copy
 import logging
@@ -401,7 +383,7 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
 async def ms_get_answer_set_task(message: types.Message, state: FSMContext):
     """
     2 action
-        text
+        set a new task or finish the lesson
     """
     username = message.from_user.username
     answer = message.text.strip().lower()
