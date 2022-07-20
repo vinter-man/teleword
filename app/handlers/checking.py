@@ -12,6 +12,7 @@ import sys
 import time
 import collections
 import random
+import os
 
 import requests
 from aiogram import Bot, Dispatcher, types
@@ -54,7 +55,7 @@ async def data_cmd(message: types.Message, state: FSMContext):
     await state.reset_state(with_data=False)
 
     answer1 = text(
-        emojize(r'Soon we will send you a file with your words :ferry:'))
+        emojize(r'Soon we will send you a file with your words :ship:'))
     remove_keyboard = types.ReplyKeyboardRemove()
     await message.answer(answer1, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
 
@@ -196,9 +197,37 @@ async def ms_get_file_type_send_data(message: types.Message, state: FSMContext):
         else:
             file_type = possible_answers[file_type_answer]
             logger.info(f'[{username}]: Start working on a file with user data {file_type, filter_key, sort_key}')
-            await message.answer(f'{file_type, filter_key, sort_key}')
-            # document = sql_func()
-            # message.answer_document()
+            try:
+                document = db_worker.create_file_with_user_words(
+                    user_tg_id=str(message.from_user.id),
+                    file_path='temporary',
+                    file_type=file_type,
+                    sql_filter_key=filter_key,
+                    sql_sort_key=sort_key
+                )
+            except Exception as e:
+                logger.error(f'[{username}]: Houston, we have got a problem {e, file_type, filter_key, sort_key}')
+                answer = text(
+                    emojize(":man_mechanic:"), r"There was a big trouble when compiling your document\, "
+                                                                        r"please write to the administrator\.")
+                await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+            else:
+                try:
+                    answer = text(
+                        r"Done\, here are your words\, enjoy", emojize(":cake:"))
+                    await message.answer_document(
+                        document=types.InputFile(document),
+                        caption=answer,
+                        parse_mode=ParseMode.MARKDOWN_V2
+                    )
+                except Exception as e:
+                    logger.error(f'[{username}]: Houston, we have got a problem {e, document}')
+                    answer = text(
+                        emojize(":man_mechanic:"), r"There was a big trouble when sending your document\, "
+                                                                       r"please write to the administrator\.")
+                    await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+                finally:
+                    os.remove(document)
 
     logger.info(f'[{username}]: Finish data files sending')
     await state.reset_state(with_data=False)

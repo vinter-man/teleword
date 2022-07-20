@@ -1,5 +1,6 @@
 import collections
 import datetime
+import json
 import logging
 import random
 import sys
@@ -336,3 +337,56 @@ def build_total_mistakes_firsttry_data_for_graph(user_sql_logs: list, future_len
 
 ########################################################################################################################
 # checking.py
+def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
+                                sql_filter_key: str, sql_sort_key: str) -> str:
+
+    # sql_filter_key:
+    if sql_filter_key == 'most important words':
+        sql_main = " SELECT " \
+                   " words.word_id, words.word, words.description, examples.ex_id, examples.example" \
+                   " FROM users" \
+                   " LEFT JOIN examples ON examples.user_id = users.user_id" \
+                   " LEFT JOIN words ON words.example_id = examples.ex_id" \
+                   " WHERE users.tg_id = '{}' AND words.rating > (SELECT AVG(rating) FROM words)".format(user_tg_id)
+    # elif sql_filter_key == '...':    # * space for expansion
+    #     pass
+    else:
+        sql_main = " SELECT " \
+                   " words.word_id, words.word, words.description, examples.ex_id, examples.example" \
+                   " FROM users" \
+                   " LEFT JOIN examples ON examples.user_id = users.user_id" \
+                   " LEFT JOIN words ON words.example_id = examples.ex_id" \
+                   " WHERE users.tg_id = '{}'".format(user_tg_id)
+
+    # sql_sort_key:
+    if sql_sort_key == 'by importance':
+        sql_query = engine.execute(sql_main + ' ORDER BY words.rating ASC')
+    elif sql_sort_key == 'in alphabetical order':
+        sql_query = engine.execute(sql_main + ' ORDER BY words.word ASC')
+    else:
+        sql_query = engine.execute(sql_main + ' ORDER BY words.word_id ASC')
+
+    # file_type:
+    file_name = str(file_path + '/words' + user_tg_id + '.' + file_type)
+    file = open(file_name, 'w', encoding='utf-8')
+    if file_name.endswith('exel'):
+        pass
+    elif file_name.endswith('json'):
+        json_data = {}
+        for i in sql_query:
+            json_data[i.word_id] = {
+                "word": i.word,
+                "description": i.description,
+                "example_id": str(i.ex_id),
+                "example": i.example
+            }
+        json.dump(json_data, file, indent=4, ensure_ascii=False)
+    elif file_name.endswith('xml'):
+        pass
+    else:
+        file.close()
+        raise NameError(f'fyle type "{file_name}" is not defined')
+    file.close()
+
+    logger.info(f'{user_tg_id} Successes return new temporary user file path')
+    return file_name
