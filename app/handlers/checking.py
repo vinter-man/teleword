@@ -147,9 +147,10 @@ async def ms_get_order_key_set_file_type_choose(message: types.Message, state: F
         bold('1. exel\n'),
         bold('2. json\n'),
         bold('3. xml\n'),
+        bold('4. csv\n'),
         '\n')
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    buttons = ['1', '2', '3']
+    buttons = ['1', '2', '3', '4']
     keyboard.add(*buttons)
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=keyboard)
 
@@ -170,7 +171,7 @@ async def ms_get_file_type_send_data(message: types.Message, state: FSMContext):
     """
     username = message.from_user.username
     answers = message.text.lower().strip().split()
-    possible_answers = {'1': 'exel', '2': 'json', '3': 'xml'}
+    possible_answers = {'1': 'exel', '2': 'json', '3': 'xml', '4': 'csv'}
     data = await state.get_data()
     filter_key = data['filter_key']
     sort_key = data['sort_key']

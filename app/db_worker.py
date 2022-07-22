@@ -1,6 +1,5 @@
 import collections
 import datetime
-import json
 import logging
 import random
 import sys
@@ -15,6 +14,10 @@ from sqlalchemy.orm import sessionmaker
 import sqlalchemy.exc
 
 from config.config import MY_SQL
+
+import json
+from xml.etree import ElementTree
+import csv
 
 
 ########################################################################################################################
@@ -308,7 +311,8 @@ def word_count(user_tg_id: str) -> int:
 
 
 def get_user_stat(user_tg_id: str, limit: int = 7) -> list:
-    return session.query(UsersStatistics).filter_by(user_id=get_user(user_tg_id).user_id).limit(limit)
+    return session.query(UsersStatistics).filter_by(user_id=get_user(user_tg_id).user_id).order_by(
+                                                                            UsersStatistics.day_id.desc()).limit(limit)
 
 
 def build_total_mistakes_firsttry_data_for_graph(user_sql_logs: list, future_length: int = 7) -> dict:
@@ -369,8 +373,10 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
     # file_type:
     file_name = str(file_path + '/words' + user_tg_id + '.' + file_type)
     file = open(file_name, 'w', encoding='utf-8')
+    # xlsx
     if file_name.endswith('exel'):
         pass
+    # json
     elif file_name.endswith('json'):
         json_data = {}
         for i in sql_query:
@@ -381,8 +387,29 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
                 "example": i.example
             }
         json.dump(json_data, file, indent=4, ensure_ascii=False)
+    # xml
     elif file_name.endswith('xml'):
-        pass
+        root = ElementTree.Element('words')
+        for i in sql_query:
+            w = ElementTree.SubElement(root, 'w')
+            word_id = ElementTree.SubElement(w, 'word_id')
+            word_id.text = str(i.word_id)
+            word = ElementTree.SubElement(w, 'word')
+            word.text = i.word
+            description = ElementTree.SubElement(w, 'description')
+            description.text = i.description
+            example_id = ElementTree.SubElement(w, 'example_id')
+            example_id.text = str(i.ex_id)
+            example = ElementTree.SubElement(w, 'example')
+            example.text = i.example
+        tree = ElementTree.ElementTree(root)
+        tree.write(file_name)
+    # сsv
+    elif file_name.endswith('csv'):
+        writer = csv.writer(file, quoting=csv.QUOTE_ALL)
+        word_data = [(i.word_id, i.word, i.description, i.ex_id, i.example) for i in sql_query]
+        writer.writerows(word_data)
+    # unknown
     else:
         file.close()
         raise NameError(f'fyle type "{file_name}" is not defined')
