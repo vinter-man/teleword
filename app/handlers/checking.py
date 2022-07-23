@@ -149,7 +149,7 @@ async def ms_get_order_key_set_file_type_choose(message: types.Message, state: F
         bold('3. xml\n'),
         bold('4. csv\n'),
         '\n')
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True)
     buttons = ['1', '2', '3', '4']
     keyboard.add(*buttons)
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=keyboard)
@@ -195,6 +195,7 @@ async def ms_get_file_type_send_data(message: types.Message, state: FSMContext):
                 italic(' or write the desired numbers separated by a space.'),
                 '\n')
             await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+            return
         else:
             file_type = possible_answers[file_type_answer]
             logger.info(f'[{username}]: Start working on a file with user data {file_type, filter_key, sort_key}')
