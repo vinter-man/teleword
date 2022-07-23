@@ -18,6 +18,8 @@ from config.config import MY_SQL
 import json
 from xml.etree import ElementTree
 import csv
+import openpyxl
+from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
 
 
 ########################################################################################################################
@@ -374,8 +376,80 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
     file_name = str(file_path + '/words' + user_tg_id + '.' + file_type)
     file = open(file_name, 'w', encoding='utf-8')
     # xlsx
-    if file_name.endswith('exel'):
-        pass
+    if file_name.endswith('xlsx'):
+        workbook = openpyxl.Workbook()
+        new_sheet = workbook.active
+        sheet = workbook.create_sheet(f"words")
+        sheet.column_dimensions['A'].width = 8.43
+        sheet.column_dimensions['B'].width = 11
+        sheet.column_dimensions['C'].width = 20
+        sheet.column_dimensions['D'].width = 50
+        sheet.column_dimensions['E'].width = 11
+        sheet.column_dimensions['F'].width = 50
+        sheet.column_dimensions['G'].width = 150
+        workbook.remove(new_sheet)
+        # write data
+        for number, i in enumerate(sql_query, start=2):
+            if number == 2:
+                sheet[f'B{number}'] = "word id"
+                sheet[f'C{number}'] = "word"
+                sheet[f'D{number}'] = "description"
+                sheet[f'E{number}'] = "ex id"
+                sheet[f'F{number}'] = "example"
+            # body
+            sheet[f'B{number + 1}'] = i.word_id
+            sheet[f'C{number + 1}'] = i.word
+            sheet[f'D{number + 1}'] = i.description
+            sheet[f'E{number + 1}'] = i.ex_id
+            sheet[f'F{number + 1}'] = i.example
+        # for design and fun
+        sheet[f'V{number + 150}'] = 'you found the easter egg:)'
+        # design
+        my_font = Font(
+            name='Segoe UI',
+            size=14,
+            color='B3BAC0'
+        )
+        my_font_blue = Font(
+            name='Segoe UI',
+            size=14,
+            color='62ACBE'
+        )
+        my_fill = PatternFill(
+            "solid",
+            fgColor="1E252B")
+        my_border = Border(
+            left=Side(border_style='thin', color='0D0D0D'),
+            right=Side(border_style='thin', color='0D0D0D'),
+            top=Side(border_style='thin', color='0D0D0D'),
+            bottom=Side(border_style='thin', color='0D0D0D')
+        )
+        my_alignment = Alignment(
+            horizontal='center',
+            vertical='center',
+            wrap_text=True,
+        )
+        for row in sheet.iter_rows():
+            for cell in row:
+                cell.fill = my_fill
+                cell.font = my_font
+                cell.alignment = my_alignment
+                # table-only borders:
+                if (
+                    cell.coordinate[0] in 'B C D E F'.split()
+                    and cell.coordinate[1].isdigit()
+                ):
+                    if 2 <= int(cell.coordinate[1:]) <= number + 1:
+                        cell.border = my_border
+                # blue color for indices and header:
+                if (
+                    (cell.coordinate[0] in 'B C D E F'.split()
+                     and cell.coordinate[1:] == '2')
+                    or
+                    (cell.coordinate[0] in 'B E'.split())
+                ):
+                    cell.font = my_font_blue
+        workbook.save(file_name)
     # json
     elif file_name.endswith('json'):
         json_data = {}

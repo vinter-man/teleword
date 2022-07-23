@@ -171,7 +171,7 @@ async def ms_get_file_type_send_data(message: types.Message, state: FSMContext):
     """
     username = message.from_user.username
     answers = message.text.lower().strip().split()
-    possible_answers = {'1': 'exel', '2': 'json', '3': 'xml', '4': 'csv'}
+    possible_answers = {'1': 'xlsx', '2': 'json', '3': 'xml', '4': 'csv'}
     data = await state.get_data()
     filter_key = data['filter_key']
     sort_key = data['sort_key']
