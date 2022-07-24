@@ -1,10 +1,3 @@
-"""
-CHECK DB AND SEND IT TO USER (all mysql skills)
-1 default check (ordering by date, all results, examples - words with descriptions, exel)
-2 custom check
-    2.1 SUB-QUERIES >>> SELECT word FROM words WHERE rating > (SELECT AVG(rating) FROM words) ORDER BY Salary DESC;
-"""
-
 import asyncio
 import copy
 import logging
@@ -243,6 +236,3 @@ def register_checking_handlers(dp: Dispatcher):
     dp.register_message_handler(ms_get_filter_set_order_key_choose, state=SendData.waiting_for_filter)
     dp.register_message_handler(ms_get_order_key_set_file_type_choose, state=SendData.waiting_for_order_key)
     dp.register_message_handler(ms_get_file_type_send_data, state=SendData.waiting_for_file_type)
-
-
-

@@ -15,6 +15,7 @@ from app.handlers.adding import register_adding_handlers
 from app.handlers.lessons import register_lesson_handlers
 from app.handlers.statistic import register_statistic_handlers
 from app.handlers.checking import register_checking_handlers
+from app.handlers.updating import register_updating_handlers
 
 
 logger = logging.getLogger(__name__)
@@ -53,6 +54,7 @@ async def main():
     register_lesson_handlers(dp)
     register_statistic_handlers(dp)
     register_checking_handlers(dp)
+    register_updating_handlers(dp)
 
     # Setting commands
     await set_commands(bot)

@@ -198,4 +198,3 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
 def register_statistic_handlers(dp: Dispatcher):
     logger.info(f'| {dp} | Register statistic handlers')
     dp.register_message_handler(statistic_cmd, commands=['statistic'], state='*')
-
