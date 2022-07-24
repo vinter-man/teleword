@@ -163,7 +163,7 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
         logger.error(f'{username} Houston, we have got a problem {e}')
         answer = text(
                 emojize(":oncoming_police_car:"), r"There was a big trouble when compiling your test\, "
-                                                                           r"please write to the administrator\.")
+                                                                             r"please write to the administrator\.")
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         return
 
@@ -173,15 +173,15 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
             emojize(':face_with_monocle:'), 'Short information\n',
             '\tThe lesson consists of 15 tasks composed of your words according to a special', r'algorithm\.', '\n',
             '\tThe lesson is decided in one sitting', r'\- if you use another commander during testing \- all progress'
-                                                      r' will erase\.', '\n',
+                                                                             r' will erase\.', '\n',
             '\tThe task end when 15 correct answers are', r'given\.', '\n',
             '\n',
             emojize(':sunglasses:'), 'Tips\n',
             '\tFor convenience, use the buttons, instead of manual input of', r'letters\.', '\n',
             '\tTry to first find a solution, despite the answer options and only when you remember',
-                                                      r'\- find the desired option\.', '\n',
+                                                                             r'\- find the desired option\.', '\n',
             '\tThe number of attempts is not limited, but try to go through the task without errors maxently straining',
-                                                      r'your memory\.',
+                                                                             r'your memory\.',
             '\n')
 
     inl_keyboard = types.InlineKeyboardMarkup()
