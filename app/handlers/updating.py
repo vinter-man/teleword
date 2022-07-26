@@ -37,8 +37,9 @@ logging.basicConfig(
 ########################################################################################################################
 class UpdateData(StatesGroup):
 
-    waiting_for_data_to_change = State()
+    waiting_for_data_type = State()
     waiting_for_action = State()
+    waiting_for_data_id = State()
     waiting_for_new_data = State()
     waiting_for_next_step = State()
 
@@ -55,9 +56,9 @@ async def change_cmd(message: types.Message, state: FSMContext):
 
     answer = text(
         bold('Small reminder:'), '\n',
-        bold('1.'), r'Choose what name you want to change or delete', '\n',
+        bold('1.'), r'Choose what you want to change or delete', '\n',
         bold('2.'), r'Then choose an action \(delete \| change\)', '\n',
-        bold('3.'), r'And then enter the word\, or example', '\n',
+        bold('3.'), r'And then enter the new word\, description\, or example', '\n',
         '\n')
     remove_keyboard = types.ReplyKeyboardRemove()
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
@@ -70,7 +71,7 @@ async def change_cmd(message: types.Message, state: FSMContext):
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=keyboard)
 
     logger.info(f'[{username}]: Transfer user to the data to change choice')
-    await UpdateData.waiting_for_data_to_change.set()
+    await UpdateData.waiting_for_data_type.set()
 
 
 async def ms_get_data_type_set_action_choose(message: types.Message, state: FSMContext):
@@ -86,7 +87,7 @@ async def ms_get_data_type_set_action_choose(message: types.Message, state: FSMC
     logger.info(f'[{username}]: Catch data type: "{user_text}"')
 
     if user_text not in possible_answers:
-        logger.info(f'[{username}] Incorrect data type "{user_text}"')
+        logger.info(f'[{username}]: Incorrect data type "{user_text}"')
         answer = text(
             emojize(':police_car: Something is wrong here'), italic(
                 f'"{message.text if len(message.text) <= 12 else message.text[:13] + "..."}"\n'),
@@ -100,17 +101,168 @@ async def ms_get_data_type_set_action_choose(message: types.Message, state: FSMC
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         return
 
-    await state.update_data(user_data_type_to_change=user_text)
+    await state.update_data(user_data_type=user_text)
 
     answer = text(
         fr"Okay, now choose what you want to do with your {user_text}")
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1, one_time_keyboard=True)
-    # buttons = ['In order of addition', 'In alphabetical order', 'By importance']
-    # keyboard.add(*buttons)
-    # await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=keyboard)
+    if user_text in 'word example'.split():
+        buttons = ['Edit', 'Delete']
+    else:           # description
+        buttons = ['Edit']
+    keyboard.add(*buttons)
+    await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=keyboard)
 
-    # logger.info(f'[{username}]: Jump to order key input')
-    # await SendData.waiting_for_order_key.set()
+    logger.info(f'[{username}]: Jump to action input')
+    await UpdateData.waiting_for_action.set()
+
+
+async def ms_get_action_set_enter_data(message: types.Message, state: FSMContext):
+    """
+    2 action
+        accept the response with the user action ('Edit', 'Delete')
+        set the wait to data id ('word_id', 'example-id')
+    """
+    username = message.from_user.username
+    user_text = message.text.lower().strip()
+    possible_answers = {'edit', 'delete'}
+
+    logger.info(f'[{username}]: Catch action: "{user_text}"')
+
+    if user_text not in possible_answers:
+        logger.info(f'[{username}]: Incorrect action "{user_text}"')
+        answer = text(
+            emojize(':police_car: Something is wrong here'), italic(
+                f'"{message.text if len(message.text) <= 12 else message.text[:13] + "..."}"\n'),
+            '\n',
+            italic('You can only edit or delete your data: '),
+                                                            bold(f'{" | ".join(possible_answers)}\n'),
+            '\n',
+            r'Try it again\, just entering your answer below\.', '\n',
+            '\n'
+        )
+        await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+        return
+
+    await state.update_data(user_data_action=user_text)
+    data = await state.get_data()
+    user_data_type = data.get("user_data_type")
+
+    if user_data_type == 'example':
+        answer = text(
+            fr"Now all we need is the id of your example to {user_text} it")
+    else:        # word description
+        answer = text(
+            fr"Now all we need is the id of your word to {user_text} it")
+
+    keyboard = types.ReplyKeyboardRemove()
+    await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=keyboard)
+
+    logger.info(f'[{username}]: Jump to id input')
+    await UpdateData.waiting_for_data_id.set()
+
+
+async def ms_get_id_set_action(message: types.Message, state: FSMContext):
+    """
+    3 action
+        accept the response with the user data to change (id | data)
+        set the action (delete from sql, new data to edit)
+    """
+    username = message.from_user.username
+    user_text = message.text.lower().strip()
+    data = await state.get_data()
+    user_data_type = data.get("user_data_type")
+    user_data_action = data.get("user_data_action")
+    logger.info(f'[{username}]: Catch id | data: "{user_text}"')
+
+    # example
+    if user_data_type == 'example':
+        pass
+    # word | description
+    else:
+        word_obj = None
+        try:
+            user = db_worker.get_user(tg_id=message.from_user.id)
+            if user_text.isdigit():
+                word_obj = db_worker.get_user_word(user=user, word_id=int(user_text))
+            if not word_obj:     # the specified numbers are not correct id or the user has entered text
+                if user_data_type == 'description':
+                    word_obj = db_worker.get_user_word(user=user, description=user_text)
+                else:
+                    word_obj = db_worker.get_user_word(user=user, word=user_text)
+        except Exception as e:
+            logger.error(f'[{username}]: Houston, we have got a unknown sql problem {e}')
+            answer = text(
+                emojize(":oncoming_police_car:"), fr"There was a big trouble when searching your {user_data_type}\, "
+                                                  r"please write to the administrator\.")
+            await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+            return
+        if not word_obj:
+            logger.info(f'[{username}]: Incorrect id | data "{user_text}"')
+            answer = text(
+                emojize(":man_detective:"),
+                    rf"We couldn\'t find the right {user_data_type}\, make sure you entered the correct word id", '\n',
+                r'Try it again\, just entering your answer below\.', '\n',
+                '\n')
+            await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+            return
+
+        word = word_obj.word
+        description = word_obj.description
+        example_obj = db_worker.get_example(example_id=word_obj.example_id)
+        example = example_obj.example
+
+
+
+    # if user_text not in possible_answers:
+    #     logger.info(f'[{username}]: Incorrect action "{user_text}"')
+    #     answer = text(
+    #         emojize(':police_car: Something is wrong here'), italic(
+    #             f'"{message.text if len(message.text) <= 12 else message.text[:13] + "..."}"\n'),
+    #         '\n',
+    #         italic('You can only edit or delete your data: '),
+    #         bold(f'{" | ".join(possible_answers)}\n'),
+    #         '\n',
+    #         r'Try it again\, just entering your answer below\.', '\n',
+    #         '\n'
+    #     )
+    #     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+    #     return
+    #
+    # await state.update_data(user_data_action=user_text)
+    # data = await state.get_data()
+    # user_data_type = data.get("user_data_type")
+    #
+    # if user_data_type == 'example':
+    #     answer = text(
+    #         fr"Now all we need is the id of your example to {user_text} it")
+    # else:  # word description
+    #     answer = text(
+    #         fr"Now all we need is the id of your word to {user_text} it")
+    #
+    # keyboard = types.ReplyKeyboardRemove()
+    # await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=keyboard)
+    #
+    # logger.info(f'[{username}]: Jump to id input')
+    # await UpdateData.waiting_for_data_id.set()
+
+    # if it's a word or description:
+    # we find the word by id, it didn’t work out by the text of the word (if the word), by the text of the description
+    # (if the description), it didn’t work return error
+    # word= description= example=
+    #
+    # if this is an example:
+    # we find an example by id, if it didn’t work out by text, an error
+    # word_list= example=
+    #
+    # print collected data
+    #
+    # if deletion - you definitely want to delete a word, a word with such a description,
+    # example (this will lead to the deletion of 101001 words)
+    # if change - ok now send me what the corrected word/description/example should look like -
+    #
+    # delete / you definitely want to change this to this
+    # ok we deleted / ok we changed what to do now
 
 
 ########################################################################################################################

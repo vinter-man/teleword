@@ -228,7 +228,7 @@ def get_word(word_id: int) -> UsersExamplesWords | None:
 
 
 def change_rating(word_id: int, new_rating: int):
-    word = get_word(word_id)
+    word = get_word(word_id=word_id)
 
     if not word:
         logger.warning(f'| {word_id} | no word with user word_id')
@@ -491,3 +491,26 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
 
     logger.info(f'{user_tg_id} Successes return new temporary user file path')
     return file_name
+
+
+########################################################################################################################
+# updating.py
+def get_example(example_id: int, example: str = None) -> UsersExamples | None:
+    if example:
+        return session.query(UsersExamples).filter_by(example=example).first()
+    else:
+        return session.query(UsersExamples).filter_by(exx_id=example_id).first()
+
+
+def get_user_word(user: Users, word_id: int = None,
+                  word: str = None, description: str = None) -> UsersExamplesWords | None:
+    user_examples_id = list(map(lambda example: example.ex_id, user.exxs))
+    if word:
+        return session.query(UsersExamplesWords).filter(sqlalchemy.and_(
+            UsersExamplesWords.word == word, UsersExamplesWords.example_id.in_(user_examples_id))).first()
+    elif description:
+        return session.query(UsersExamplesWords).filter(sqlalchemy.and_(
+            UsersExamplesWords.description == description, UsersExamplesWords.example_id.in_(user_examples_id))).first()
+    else:
+        return session.query(UsersExamplesWords).filter(sqlalchemy.and_(
+            UsersExamplesWords.word_id == word_id, UsersExamplesWords.example_id.in_(user_examples_id))).first()
