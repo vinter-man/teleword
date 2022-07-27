@@ -495,11 +495,14 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
 
 ########################################################################################################################
 # updating.py
-def get_example(example_id: int, example: str = None) -> UsersExamples | None:
+def get_example(user: Users, example_id: int = None, example: str = None) -> UsersExamples | None:
+    user_examples_id = list(map(lambda ex: ex.ex_id, user.exxs))
     if example:
-        return session.query(UsersExamples).filter_by(example=example).first()
+        return session.query(UsersExamples).filter(sqlalchemy.and_(
+            UsersExamples.example == example, UsersExamples.ex_id.in_(user_examples_id))).first()
     else:
-        return session.query(UsersExamples).filter_by(exx_id=example_id).first()
+        return session.query(UsersExamples).filter(sqlalchemy.and_(
+            UsersExamples.ex_id == example_id, UsersExamples.ex_id.in_(user_examples_id))).first()
 
 
 def get_user_word(user: Users, word_id: int = None,

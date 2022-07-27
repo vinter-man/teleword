@@ -41,6 +41,7 @@ class UpdateData(StatesGroup):
     waiting_for_action = State()
     waiting_for_data_id = State()
     waiting_for_new_data = State()
+    waiting_for_deleting = State()
     waiting_for_next_step = State()
 
 
@@ -177,18 +178,80 @@ async def ms_get_id_set_action(message: types.Message, state: FSMContext):
 
     # example
     if user_data_type == 'example':
-        pass
+        example_obj = None
+        try:
+            flag = 'example_id'
+            user = db_worker.get_user(tg_id=message.from_user.id)
+            if user_text.isdigit():
+                example_obj = db_worker.get_example(user=user, example_id=int(user_text))
+            if not example_obj:     # the specified numbers are not correct id or the user has entered text
+                flag = 'example_text'
+                word_obj = db_worker.get_example(user=user, example=user_text)
+        except Exception as e:
+            logger.error(f'[{username}]: Houston, we have got a unknown sql problem {e}')
+            answer = text(
+                emojize(":oncoming_police_car:"), fr"There was a big trouble when searching your {user_data_type}\, "
+                                                  r"please write to the administrator\.")
+            await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+            return
+        if not example_obj:
+            logger.info(f'[{username}]: Incorrect id | data "{user_text}"')
+            answer = text(
+                emojize(":man_detective:"),
+                  rf"We couldn\'t find the right {user_data_type}\, make sure you entered the correct example id", '\n',
+                r'Try it again\, just entering your answer below\.', '\n',
+                '\n')
+            await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+            return
+
+        example = example_obj.example
+        words = [w.word for w in example_obj.words]
+        await state.update_data(user_example_id=example_obj.ex_id)   # need for next step (deleting | editing)
+
+        answer = text(
+            bold(r"Here\'s what we found"), emojize(r':helicopter:'), '\n',
+            '\n',
+            bold(r" Example : "), italic(f'{example}'), '\n',
+            bold(rf" With word{'s' if len(words) > 1 else ''} : "), italic(f'{", ".join(words)}'), '\n',
+            '\n')
+        await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+
+        if user_data_action == 'delete':
+            answer = text(
+                r"Are you sure you want to", bold("delete"), rf"an example", italic(f'{example}'),
+                r'\, this will result in the deletion of all these words:', italic(f'{", ".join(words)}'),
+                emojize(r':firecracker:'), '\n',
+                '\n',)
+            inl_keyboard = types.InlineKeyboardMarkup()
+            inl_buttons = [
+                types.InlineKeyboardButton(text=text(emojize(':boom: Yes')), callback_data='call_delete_example'),
+                types.InlineKeyboardButton(text=text(emojize(':dove_of_peace: No')), callback_data='call_cancel')]
+            inl_keyboard.add(*inl_buttons)
+            await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
+            logger.info(f'[{username}]: Jump to deleting example')
+            await UpdateData.waiting_for_deleting.set()
+        else:    # edit
+            answer = text(
+                r"Enter what you want to ", bold("change"), rf"the example", italic(f'"{example}"'),
+                    emojize(r'to :lower_left_crayon:'), '\n')
+            await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+            logger.info(f'[{username}]: Jump to new {user_data_type} input')
+            await UpdateData.waiting_for_new_data.set()
+
     # word | description
     else:
         word_obj = None
         try:
+            flag = 'word_id'
             user = db_worker.get_user(tg_id=message.from_user.id)
             if user_text.isdigit():
                 word_obj = db_worker.get_user_word(user=user, word_id=int(user_text))
             if not word_obj:     # the specified numbers are not correct id or the user has entered text
                 if user_data_type == 'description':
+                    flag = 'desc_text'
                     word_obj = db_worker.get_user_word(user=user, description=user_text)
                 else:
+                    flag = 'word_text'
                     word_obj = db_worker.get_user_word(user=user, word=user_text)
         except Exception as e:
             logger.error(f'[{username}]: Houston, we have got a unknown sql problem {e}')
@@ -209,60 +272,44 @@ async def ms_get_id_set_action(message: types.Message, state: FSMContext):
 
         word = word_obj.word
         description = word_obj.description
-        example_obj = db_worker.get_example(example_id=word_obj.example_id)
+        example_obj = db_worker.get_example(user=user, example_id=word_obj.example_id)
         example = example_obj.example
+        await state.update_data(user_word_id=word_obj.word_id)     # need for next step (deleting | editing)
 
+        answer = text(
+            bold(r"Here\'s what we found"), f'({"first match with your input" if flag != "word_id" else ""})',
+                emojize(r':helicopter:'), '\n',
+            '\n',
+            bold(r" Example : "), italic(f'{example}'), '\n',
+            bold(r" Word : "), italic(f'{word}'), '\n',
+            bold(r" Description : "), italic(f'{example_obj}'), '\n',
+            '\n')
+        await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
 
-
-    # if user_text not in possible_answers:
-    #     logger.info(f'[{username}]: Incorrect action "{user_text}"')
-    #     answer = text(
-    #         emojize(':police_car: Something is wrong here'), italic(
-    #             f'"{message.text if len(message.text) <= 12 else message.text[:13] + "..."}"\n'),
-    #         '\n',
-    #         italic('You can only edit or delete your data: '),
-    #         bold(f'{" | ".join(possible_answers)}\n'),
-    #         '\n',
-    #         r'Try it again\, just entering your answer below\.', '\n',
-    #         '\n'
-    #     )
-    #     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
-    #     return
-    #
-    # await state.update_data(user_data_action=user_text)
-    # data = await state.get_data()
-    # user_data_type = data.get("user_data_type")
-    #
-    # if user_data_type == 'example':
-    #     answer = text(
-    #         fr"Now all we need is the id of your example to {user_text} it")
-    # else:  # word description
-    #     answer = text(
-    #         fr"Now all we need is the id of your word to {user_text} it")
-    #
-    # keyboard = types.ReplyKeyboardRemove()
-    # await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=keyboard)
-    #
-    # logger.info(f'[{username}]: Jump to id input')
-    # await UpdateData.waiting_for_data_id.set()
-
-    # if it's a word or description:
-    # we find the word by id, it didn’t work out by the text of the word (if the word), by the text of the description
-    # (if the description), it didn’t work return error
-    # word= description= example=
-    #
-    # if this is an example:
-    # we find an example by id, if it didn’t work out by text, an error
-    # word_list= example=
-    #
-    # print collected data
-    #
-    # if deletion - you definitely want to delete a word, a word with such a description,
-    # example (this will lead to the deletion of 101001 words)
-    # if change - ok now send me what the corrected word/description/example should look like -
-    #
-    # delete / you definitely want to change this to this
-    # ok we deleted / ok we changed what to do now
+        if user_data_action == 'delete':
+            answer = text(
+                r"Are you sure you want to", bold("delete"),
+                    rf"the word {'with this description' if user_data_type == 'description' else ''}\? ",
+                        emojize(r':firecracker:'), '\n',
+                '\n',)
+            inl_keyboard = types.InlineKeyboardMarkup()
+            inl_buttons = [
+                types.InlineKeyboardButton(text=text(emojize(':boom: Yes')), callback_data='call_delete_word'),
+                types.InlineKeyboardButton(text=text(emojize(':dove_of_peace: No')), callback_data='call_cancel')]
+            inl_keyboard.add(*inl_buttons)
+            await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
+            logger.info(f'[{username}]: Jump to deleting word')
+            await UpdateData.waiting_for_deleting.set()
+        else:    # edit
+            answer = text(
+                r"Enter what you want to ", bold("change"),
+                    rf"the {'word' if user_data_type == 'word' else 'description'}",
+                        italic(f'"{word if user_data_type == "word" else description}"'),
+                            emojize(r'to :lower_left_crayon:'),
+                '\n')
+            await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+            logger.info(f'[{username}]: Jump to new {user_data_type} input')
+            await UpdateData.waiting_for_new_data.set()
 
 
 ########################################################################################################################
