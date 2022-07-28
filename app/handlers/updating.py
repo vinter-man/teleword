@@ -66,7 +66,7 @@ async def change_cmd(message: types.Message, state: FSMContext):
 
     answer = text(
         emojize(r"Let\'s decide what we will change \| delete :eyes:"))
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1, one_time_keyboard=True)
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     buttons = ['Word', 'Description', 'Example']
     keyboard.add(*buttons)
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=keyboard)
@@ -106,7 +106,7 @@ async def ms_get_data_type_set_action_choose(message: types.Message, state: FSMC
 
     answer = text(
         fr"Okay, now choose what you want to do with your {user_text}")
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1, one_time_keyboard=True)
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     if user_text in 'word example'.split():
         buttons = ['Edit', 'Delete']
     else:           # description
@@ -180,13 +180,12 @@ async def ms_get_id_set_action(message: types.Message, state: FSMContext):
     if user_data_type == 'example':
         example_obj = None
         try:
-            flag = 'example_id'
+            await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)
             user = db_worker.get_user(tg_id=message.from_user.id)
             if user_text.isdigit():
                 example_obj = db_worker.get_example(user=user, example_id=int(user_text))
             if not example_obj:     # the specified numbers are not correct id or the user has entered text
-                flag = 'example_text'
-                word_obj = db_worker.get_example(user=user, example=user_text)
+                example_obj = db_worker.get_example(user=user, example=user_text)
         except Exception as e:
             logger.error(f'[{username}]: Houston, we have got a unknown sql problem {e}')
             answer = text(
@@ -204,27 +203,29 @@ async def ms_get_id_set_action(message: types.Message, state: FSMContext):
             await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
             return
 
+        await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)
         example = example_obj.example
         words = [w.word for w in example_obj.words]
         await state.update_data(user_example_id=example_obj.ex_id)   # need for next step (deleting | editing)
 
         answer = text(
-            bold(r"Here\'s what we found"), emojize(r':helicopter:'), '\n',
+            bold(r"Here's what we found"), emojize(r':helicopter:'), '\n',
             '\n',
-            bold(r" Example : "), italic(f'{example}'), '\n',
+            bold(r" Example : "), italic(f'"{example}"'), '\n',
             bold(rf" With word{'s' if len(words) > 1 else ''} : "), italic(f'{", ".join(words)}'), '\n',
             '\n')
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
 
         if user_data_action == 'delete':
             answer = text(
-                r"Are you sure you want to", bold("delete"), rf"an example", italic(f'{example}'),
-                r'\, this will result in the deletion of all these words:', italic(f'{", ".join(words)}'),
+                r"Are you sure you want to", bold("delete"), rf"an example", italic(f'"{example}"'),
+                rf'\, this will result in the deletion of {"if all these words" if len(words) > 1 else "the world"}\:',
+                italic(f'{", ".join(words)}'),
                 emojize(r':firecracker:'), '\n',
                 '\n',)
             inl_keyboard = types.InlineKeyboardMarkup()
             inl_buttons = [
-                types.InlineKeyboardButton(text=text(emojize(':boom: Yes')), callback_data='call_delete_example'),
+                types.InlineKeyboardButton(text=text(emojize(':boom: Yes')), callback_data='call_delete_data'),
                 types.InlineKeyboardButton(text=text(emojize(':dove_of_peace: No')), callback_data='call_cancel')]
             inl_keyboard.add(*inl_buttons)
             await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
@@ -243,7 +244,9 @@ async def ms_get_id_set_action(message: types.Message, state: FSMContext):
         word_obj = None
         try:
             flag = 'word_id'
+            await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)
             user = db_worker.get_user(tg_id=message.from_user.id)
+
             if user_text.isdigit():
                 word_obj = db_worker.get_user_word(user=user, word_id=int(user_text))
             if not word_obj:     # the specified numbers are not correct id or the user has entered text
@@ -277,12 +280,12 @@ async def ms_get_id_set_action(message: types.Message, state: FSMContext):
         await state.update_data(user_word_id=word_obj.word_id)     # need for next step (deleting | editing)
 
         answer = text(
-            bold(r"Here\'s what we found"), f'({"first match with your input" if flag != "word_id" else ""})',
+            bold(r"Here's what we found"), italic(f'{"(first match with your input)" if flag != "word_id" else ""}'),
                 emojize(r':helicopter:'), '\n',
             '\n',
-            bold(r" Example : "), italic(f'{example}'), '\n',
+            bold(r" Example : "), italic(f'"{example}"'), '\n',
             bold(r" Word : "), italic(f'{word}'), '\n',
-            bold(r" Description : "), italic(f'{example_obj}'), '\n',
+            bold(r" Description : "), italic(f'"{description}"'), '\n',
             '\n')
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
 
@@ -294,7 +297,7 @@ async def ms_get_id_set_action(message: types.Message, state: FSMContext):
                 '\n',)
             inl_keyboard = types.InlineKeyboardMarkup()
             inl_buttons = [
-                types.InlineKeyboardButton(text=text(emojize(':boom: Yes')), callback_data='call_delete_word'),
+                types.InlineKeyboardButton(text=text(emojize(':boom: Yes')), callback_data='call_delete_data'),
                 types.InlineKeyboardButton(text=text(emojize(':dove_of_peace: No')), callback_data='call_cancel')]
             inl_keyboard.add(*inl_buttons)
             await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
@@ -312,6 +315,187 @@ async def ms_get_id_set_action(message: types.Message, state: FSMContext):
             await UpdateData.waiting_for_new_data.set()
 
 
+async def ms_get_new_data_set_finish(message: types.Message, state: FSMContext):
+    """
+    4 action
+        accept the response with the new user data to change
+        set the finish message with inline buttons
+    """
+    username = message.from_user.username
+    user_text = message.text.lower().strip()
+    user_text_length = len(user_text)
+    data = await state.get_data()
+    user_data_type = data.get("user_data_type")
+    logger.info(f'[{username}]: New {user_data_type} data: "{user_text}"')
+
+    if user_data_type == 'example':
+        user_data_id = data.get("user_example_id")
+    else:    # word | description
+        user_data_id = data.get("user_word_id")
+
+    if user_data_type == 'example' and (user_text_length > 400 or user_text_length < 5):
+        answer = text(
+            rf'The length of your example is {user_text_length}\. Try again')
+        await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+        return
+    if user_data_type == 'word' and (user_text_length > 135 or user_text_length < 1):
+        answer = text(
+            rf'The length of your word is {user_text_length}\. Try again')
+        await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+        return
+    elif user_data_type == 'description' and (user_text_length > 400 or user_text_length < 1):
+        answer = text(
+            rf'The length of your description is {user_text_length}\. Try again')
+        await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+        return
+
+    answer = text(
+        rf'Please wait while we update your {user_data_type} \- this may take some time\.\.\.', '\n')
+    await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+
+    await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)
+    # * sqlfunc_update(data_id=, data_type=, new_data=user_text)
+
+    try:
+        user = db_worker.get_user(tg_id=message.from_user.id)
+        if user_data_type == 'example':
+            example_obj = db_worker.get_example(
+                user=user,
+                example_id=user_data_id
+            )
+            words = [w.word for w in example_obj.words]
+            answer = text(
+                bold('Congratulate'), r'your data have been successfully updating to\:', '\n',
+                bold('\n\tExample'), ' : ', italic(rf'"{example_obj.example}"'),
+                bold(f"\n\tWord{'s' if len(words) > 1 else ''} : "), r' \: ', italic(fr'"{",".join(words)}"'))
+        else:     # word | description
+            word_obj = db_worker.get_user_word(
+                user=user,
+                word_id=user_data_id
+            )
+            example = db_worker.get_example(user=user, example_id=word_obj.example_id).example
+            answer = text(
+                bold('Congratulate'), r'your data have been successfully updating to\:', '\n',
+                bold('\n\tExample'), ' : ', italic(rf'"{example}"'),
+                bold('\n\tWord'), ' : ', italic(fr'{word_obj.word}'),
+                bold('\n\tDescription'), ' : ', italic(fr'{word_obj.description}'))
+    except Exception as e:
+        logger.error(f'{username} Houston, we have got a unknown sql problem {e}')
+        answer = text(
+            emojize(":oncoming_police_car:"), r"There was a big trouble when edit your data\, "
+                                              r"please write to the administrator\.")
+        await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+        return
+
+    inl_keyboard = types.InlineKeyboardMarkup()
+    inl_buttons = [
+        types.InlineKeyboardButton(text=text(emojize(':rowboat: Continue ')), callback_data='call_change'),
+        types.InlineKeyboardButton(text=text(emojize(':desert_island: Exit ')), callback_data='call_cancel')]
+    inl_keyboard.add(*inl_buttons)
+    await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
+    await UpdateData.waiting_for_next_step.set()
+
+
+async def cb_get_delete_data_set_finish(call: types.CallbackQuery, state: FSMContext):
+    """
+    4 action
+        accept the response with the data to delete
+        set the finish message with inline buttons
+    """
+    username = call.from_user.username
+    await call.message.delete_reply_markup()
+    data = await state.get_data()
+    user_data_type = data.get("user_data_type")
+    if user_data_type == 'example':
+        user_data_id = data.get("user_example_id")
+    else:    # word | description
+        user_data_id = data.get("user_word_id")
+    logger.info(f'[{username}]: {user_data_type} to delete: "{user_data_id}"')
+
+    answer = text(
+        rf'Please wait while we delete your {user_data_type} \- this may take some time\.\.\.', '\n')
+    await call.message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+
+    await call.message.bot.send_chat_action(call.message.from_user.id, ChatActions.TYPING)
+    # * sqlfunc_delete(data_id=, data_type=,  new_type=)
+
+    try:
+        user = db_worker.get_user(tg_id=call.message.chat.id)
+        if user_data_type == 'example':
+            example_obj = db_worker.get_example(
+                user=user,
+                example_id=user_data_id
+            )
+        else:
+            example_obj = db_worker.get_example(
+                user=user,
+                example_id=user_data_id
+            )
+        if example_obj:
+            raise FileExistsError(f'The file {example_obj} was not successfully deleted from the database')
+        answer = text(
+            bold('Congratulate'), r'your data have been successfully deleting\!', '\n',)
+    except Exception as e:
+        logger.error(f'{username} Houston, we have got a unknown sql problem {e}')
+        answer = text(
+            emojize(":oncoming_police_car:"), r"There was a big trouble when deleting your data\, "
+                                              r"please write to the administrator\.")
+        await call.message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+        return
+
+    inl_keyboard = types.InlineKeyboardMarkup()
+    inl_buttons = [
+        types.InlineKeyboardButton(text=text(emojize(':rowboat: Continue ')), callback_data='call_change'),
+        types.InlineKeyboardButton(text=text(emojize(':desert_island: Exit ')), callback_data='call_cancel')]
+    inl_keyboard.add(*inl_buttons)
+    await call.message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
+    await UpdateData.waiting_for_next_step.set()
+
+
+async def cb_delegate_change(call: types.CallbackQuery, state: FSMContext):
+    """
+    5 action
+        delegate work in change_cmd coroutine
+    """
+    username = call.from_user.username
+    logger.info(f'{username} Send call with /change command')
+
+    await call.message.delete_reply_markup()
+    await call.answer(show_alert=False)
+    await change_cmd(message=call.message, state=state)
+
+
 ########################################################################################################################
 def register_updating_handlers(dp: Dispatcher):
     logger.info(f'| {dp} | Register updating handlers')
+
+    dp.register_message_handler(change_cmd, commands=['change'],
+                                state='*')
+    dp.register_message_handler(ms_get_data_type_set_action_choose,
+                                state=UpdateData.waiting_for_data_type)
+    dp.register_message_handler(ms_get_action_set_enter_data,
+                                state=UpdateData.waiting_for_action)
+    dp.register_message_handler(ms_get_id_set_action,
+                                state=UpdateData.waiting_for_data_id)
+
+    dp.register_message_handler(ms_get_new_data_set_finish,
+                                state=UpdateData.waiting_for_new_data)
+    dp.register_callback_query_handler(
+        cb_get_delete_data_set_finish,
+        Text(equals='call_delete_data'),
+        state=UpdateData.waiting_for_deleting
+    )
+
+    dp.register_callback_query_handler(
+        cb_delegate_change,
+        Text(equals='call_change'),
+        state=UpdateData.waiting_for_next_step
+    )
+
+
+
+
+
+
+
+
