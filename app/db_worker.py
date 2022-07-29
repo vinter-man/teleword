@@ -4,22 +4,21 @@ import logging
 import random
 import sys
 import time
-
+import json
+import csv
+import openpyxl
 import sqlalchemy
-import mysql.connector
 
+import mysql.connector
+from xml.etree import ElementTree
+from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy.exc
 
+from . import oxf_api_worker
 from config.config import MY_SQL
-
-import json
-from xml.etree import ElementTree
-import csv
-import openpyxl
-from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
 
 
 ########################################################################################################################
@@ -495,7 +494,7 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
 
 ########################################################################################################################
 # updating.py
-def get_example(user: Users, example_id: int = None, example: str = None) -> UsersExamples | None:
+def get_user_example(user: Users, example_id: int = None, example: str = None) -> UsersExamples | None:
     user_examples_id = list(map(lambda ex: ex.ex_id, user.exxs))
     if example:
         return session.query(UsersExamples).filter(sqlalchemy.and_(
@@ -503,6 +502,10 @@ def get_example(user: Users, example_id: int = None, example: str = None) -> Use
     else:
         return session.query(UsersExamples).filter(sqlalchemy.and_(
             UsersExamples.ex_id == example_id, UsersExamples.ex_id.in_(user_examples_id))).first()
+
+
+def get_example(example_id: int) -> UsersExamples | None:
+    return session.query(UsersExamples).filter_by(ex_id=example_id).first()
 
 
 def get_user_word(user: Users, word_id: int = None,
@@ -517,3 +520,42 @@ def get_user_word(user: Users, word_id: int = None,
     else:
         return session.query(UsersExamplesWords).filter(sqlalchemy.and_(
             UsersExamplesWords.word_id == word_id, UsersExamplesWords.example_id.in_(user_examples_id))).first()
+
+
+def update_data(data_type: str, data_id: int, new_data: str):
+    if data_type == 'word':
+        word = get_word(word_id=data_id)
+        word.word = new_data
+        word.category = oxf_api_worker.get_word_category(word=new_data)
+        session.add(word)
+    elif data_type == 'description':
+        word = get_word(word_id=data_id)
+        word.description = new_data
+        session.add(word)
+    elif data_type == 'example':
+        example = get_example(example_id=data_id)
+        example.example = new_data
+        session.add(example)
+    else:
+        raise ValueError(f'TypeError can only work with "word", "description", "example" (not "{data_type}")')
+    session.commit()
+
+
+def delete_data(data_type: str, data_id: int):
+    if data_type == 'word':
+        word = get_word(word_id=data_id)
+        session.delete(word)
+        # if example words 0 -> delete example
+    elif data_type == 'description':
+        word = get_word(word_id=data_id)
+        session.delete(word)
+        # if example words 0 -> delete example
+    elif data_type == 'example':
+        example = get_example(example_id=data_id)
+        words = example.words
+        for word in words:
+            session.delete(word)
+        session.delete(example)
+    else:
+        raise ValueError(f'TypeError can only work with "word", "description", "example" (not "{data_type}")')
+    session.commit()

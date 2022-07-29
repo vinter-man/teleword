@@ -14,6 +14,7 @@ from aiogram.dispatcher.filters import Text
 from config.config import APP_KEY_OXF, APP_ID_OXF, URL_OXF
 
 from .. import db_worker
+from .. import oxf_api_worker
 
 
 ########################################################################################################################
@@ -253,7 +254,7 @@ async def ms_get_description_write_data_to_sql(message: types.Message, state: FS
     example = data.get('current_example')
     word = data.get('current_word')
     description = data.get('current_description')
-    category = get_word_category(
+    category = oxf_api_worker.get_word_category(
         word=word,
         default='-',
         url=URL_OXF
@@ -323,28 +324,6 @@ async def cb_cancel(call: types.CallbackQuery, state: FSMContext):
     )
     await call.answer(show_alert=False)
     await state.reset_state(with_data=False)
-
-
-def get_word_category(word: str, default='-', url=URL_OXF) -> str:
-    url += word.lower()
-    headers = {
-        'app_id': APP_ID_OXF,
-        'app_key': APP_KEY_OXF
-    }
-    r = requests.get(url, headers=headers)
-    if r.status_code != 200:
-        logger.warning(f'{word} Requests error '
-                       f'{r.status_code, headers, url} \n {r.text} \n ')
-        return default
-
-    word_data = r.json()
-    if "error" in word_data.keys():
-        logger.warning(f'{word} No entry found that matches the provided data'
-                       f'{r.status_code, headers, url} \n {r.text} \n ')
-        return default
-
-    # Noun | Verb ... (Part of speech)
-    return word_data["results"][0]["lexicalEntries"][0]["lexicalCategory"]["text"]
 
 
 ########################################################################################################################

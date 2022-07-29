@@ -183,9 +183,9 @@ async def ms_get_id_set_action(message: types.Message, state: FSMContext):
             await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)
             user = db_worker.get_user(tg_id=message.from_user.id)
             if user_text.isdigit():
-                example_obj = db_worker.get_example(user=user, example_id=int(user_text))
+                example_obj = db_worker.get_user_example(user=user, example_id=int(user_text))
             if not example_obj:     # the specified numbers are not correct id or the user has entered text
-                example_obj = db_worker.get_example(user=user, example=user_text)
+                example_obj = db_worker.get_user_example(user=user, example=user_text)
         except Exception as e:
             logger.error(f'[{username}]: Houston, we have got a unknown sql problem {e}')
             answer = text(
@@ -275,7 +275,7 @@ async def ms_get_id_set_action(message: types.Message, state: FSMContext):
 
         word = word_obj.word
         description = word_obj.description
-        example_obj = db_worker.get_example(user=user, example_id=word_obj.example_id)
+        example_obj = db_worker.get_user_example(user=user, example_id=word_obj.example_id)
         example = example_obj.example
         await state.update_data(user_word_id=word_obj.word_id)     # need for next step (deleting | editing)
 
@@ -354,12 +354,12 @@ async def ms_get_new_data_set_finish(message: types.Message, state: FSMContext):
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
 
     await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)
-    # * sqlfunc_update(data_id=, data_type=, new_data=user_text)
 
     try:
+        db_worker.update_data(data_type=user_data_type, data_id=user_data_id, new_data=user_text)
         user = db_worker.get_user(tg_id=message.from_user.id)
         if user_data_type == 'example':
-            example_obj = db_worker.get_example(
+            example_obj = db_worker.get_user_example(
                 user=user,
                 example_id=user_data_id
             )
@@ -373,7 +373,7 @@ async def ms_get_new_data_set_finish(message: types.Message, state: FSMContext):
                 user=user,
                 word_id=user_data_id
             )
-            example = db_worker.get_example(user=user, example_id=word_obj.example_id).example
+            example = db_worker.get_user_example(user=user, example_id=word_obj.example_id).example
             answer = text(
                 bold('Congratulate'), r'your data have been successfully updating to\:', '\n',
                 bold('\n\tExample'), ' : ', italic(rf'"{example}"'),
@@ -417,17 +417,17 @@ async def cb_get_delete_data_set_finish(call: types.CallbackQuery, state: FSMCon
     await call.message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
 
     await call.message.bot.send_chat_action(call.message.from_user.id, ChatActions.TYPING)
-    # * sqlfunc_delete(data_id=, data_type=,  new_type=)
 
     try:
+        db_worker.delete_data(data_type=user_data_type, data_id=user_data_id)
         user = db_worker.get_user(tg_id=call.message.chat.id)
         if user_data_type == 'example':
-            example_obj = db_worker.get_example(
+            example_obj = db_worker.get_user_example(
                 user=user,
                 example_id=user_data_id
             )
         else:
-            example_obj = db_worker.get_example(
+            example_obj = db_worker.get_user_example(
                 user=user,
                 example_id=user_data_id
             )
