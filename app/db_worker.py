@@ -544,12 +544,16 @@ def update_data(data_type: str, data_id: int, new_data: str):
 def delete_data(data_type: str, data_id: int):
     if data_type == 'word':
         word = get_word(word_id=data_id)
+        word_example = get_example(example_id=word.example_id)
         session.delete(word)
-        # if example words 0 -> delete example
+        if len(word_example.words) == 0:
+            session.delete(word_example)
     elif data_type == 'description':
         word = get_word(word_id=data_id)
+        word_example = get_example(example_id=word.example_id)
         session.delete(word)
-        # if example words 0 -> delete example
+        if len(word_example.words) == 0:
+            session.delete(word_example)
     elif data_type == 'example':
         example = get_example(example_id=data_id)
         words = example.words
