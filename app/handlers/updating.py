@@ -57,6 +57,7 @@ async def change_cmd(message: types.Message, state: FSMContext):
 
     answer = text(
         bold('Small reminder:'), '\n',
+        italic('(use /data first to select the desired word and example ids)'), '\n',
         bold('1.'), r'Choose what you want to change or delete', '\n',
         bold('2.'), r'Then choose an action \(delete \| change\)', '\n',
         bold('3.'), r'And then enter the new word\, description\, or example', '\n',
@@ -65,7 +66,7 @@ async def change_cmd(message: types.Message, state: FSMContext):
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
 
     answer = text(
-        emojize(r"Let\'s decide what we will change \| delete :eyes:"))
+        emojize(r"Let\'s decide what we will change or delete :eyes:"))
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     buttons = ['Word', 'Description', 'Example']
     keyboard.add(*buttons)

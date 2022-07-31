@@ -20,3 +20,4 @@ Thumbs.db
 *.mov
 *.wmv
 
+config/configsecret.py
