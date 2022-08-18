@@ -8,6 +8,7 @@ import json
 import csv
 import openpyxl
 import sqlalchemy
+import secrets
 
 import mysql.connector
 from xml.etree import ElementTree
@@ -56,6 +57,7 @@ class Users(Base):
 
     exxs = relationship('UsersExamples', backref='user_examples')    # class not table name
     stats = relationship('UsersStatistics', backref='user_statistics')
+    apiks = relationship('UsersApiKeys', backref='user_apikeys')
 
 
 class UsersExamples(Base):
@@ -87,6 +89,14 @@ class UsersStatistics(Base):
     firs_try_success = sqlalchemy.Column(sqlalchemy.Integer)
     mistake = sqlalchemy.Column(sqlalchemy.Integer)
     total = sqlalchemy.Column(sqlalchemy.Integer)
+    user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.user_id'))
+
+
+class UsersApiKeys(Base):
+    __tablename__ = 'apikeys'
+
+    key_id = sqlalchemy.Column(sqlalchemy.Integer, autoincrement=True, primary_key=True)
+    key = sqlalchemy.Column(sqlalchemy.String(36), nullable=False)
     user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.user_id'))
 
 
@@ -563,3 +573,30 @@ def delete_data(data_type: str, data_id: int):
     else:
         raise ValueError(f'TypeError can only work with "word", "description", "example" (not "{data_type}")')
     session.commit()
+
+
+########################################################################################################################
+# api.py
+def generate_api_keys(user: Users):
+    session.add(UsersApiKeys(
+        key=secrets.token_urlsafe(36),
+        user_id=user.user_id
+    ))
+    session.commit()
+
+
+def is_api_keys(user: Users) -> bool:
+    api_key = session.query(UsersApiKeys).filter(sqlalchemy.and_(
+        UsersApiKeys.user_id == user.user_id
+    )).first()
+    if api_key:
+        return True
+    else:
+        return False
+
+
+def get_user_api_key(user: Users) -> str:
+    api_key: UsersApiKeys = session.query(UsersApiKeys).filter(sqlalchemy.and_(
+        UsersApiKeys.user_id == user.user_id
+    )).first()
+    return api_key.key
