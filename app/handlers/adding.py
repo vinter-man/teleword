@@ -14,7 +14,6 @@ from aiogram.dispatcher.filters import Text
 from config.config import APP_KEY_OXF, APP_ID_OXF, URL_OXF
 
 from .. import db_worker
-from .. import oxf_api_worker
 
 
 ########################################################################################################################
@@ -254,7 +253,7 @@ async def ms_get_description_write_data_to_sql(message: types.Message, state: FS
     example = data.get('current_example')
     word = data.get('current_word')
     description = data.get('current_description')
-    category = oxf_api_worker.get_word_category(
+    category = db_worker.get_word_category(
         word=word,
         default='-',
         url=URL_OXF

@@ -67,6 +67,9 @@ async def api_cmd(message: types.Message, state: FSMContext):
         )
         remove_keyboard = types.ReplyKeyboardRemove()
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
+        logger.info(f'[{username}]: Finish /api command')
+        await state.reset_state(with_data=False)
+        return
 
     else:          # register new keys
         answer = text(

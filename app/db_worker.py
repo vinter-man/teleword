@@ -9,6 +9,7 @@ import csv
 import openpyxl
 import sqlalchemy
 import secrets
+import requests
 
 import mysql.connector
 from xml.etree import ElementTree
@@ -18,8 +19,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy.exc
 
-from . import oxf_api_worker
-from config.config import MY_SQL
+from config.config import MY_SQL, APP_KEY_OXF, APP_ID_OXF, URL_OXF
+
 
 
 ########################################################################################################################
@@ -532,11 +533,33 @@ def get_user_word(user: Users, word_id: int = None,
             UsersExamplesWords.word_id == word_id, UsersExamplesWords.example_id.in_(user_examples_id))).first()
 
 
+def get_word_category(word: str, default='-', url=URL_OXF) -> str:
+    url += word.lower()
+    headers = {
+        'app_id': APP_ID_OXF,
+        'app_key': APP_KEY_OXF
+    }
+    r = requests.get(url, headers=headers)
+    if r.status_code != 200:
+        logger.warning(f'{word} Requests error '
+                       f'{r.status_code, headers, url} \n {r.text} \n ')
+        return default
+
+    word_data = r.json()
+    if "error" in word_data.keys():
+        logger.warning(f'{word} No entry found that matches the provided data'
+                       f'{r.status_code, headers, url} \n {r.text} \n ')
+        return default
+
+    # Noun | Verb ... (Part of speech)
+    return word_data["results"][0]["lexicalEntries"][0]["lexicalCategory"]["text"]
+
+
 def update_data(data_type: str, data_id: int, new_data: str):
     if data_type == 'word':
         word = get_word(word_id=data_id)
         word.word = new_data
-        word.category = oxf_api_worker.get_word_category(word=new_data)
+        word.category = get_word_category(word=new_data)
         session.add(word)
     elif data_type == 'description':
         word = get_word(word_id=data_id)
@@ -578,8 +601,15 @@ def delete_data(data_type: str, data_id: int):
 ########################################################################################################################
 # api.py
 def generate_api_keys(user: Users):
+    while True:
+        new_key = secrets.token_urlsafe(64)
+        key = session.query(UsersApiKeys).filter(sqlalchemy.and_(
+            UsersApiKeys.key == new_key
+        )).first()
+        if not key:
+            break
     session.add(UsersApiKeys(
-        key=secrets.token_urlsafe(64),
+        key=new_key,
         user_id=user.user_id
     ))
     session.commit()
@@ -600,3 +630,13 @@ def get_user_api_key(user: Users) -> str:
         UsersApiKeys.user_id == user.user_id
     )).first()
     return api_key.key
+
+
+def get_user_by_api_key(token: str) -> Users:
+    api_obj: UsersApiKeys = session.query(UsersApiKeys).filter(sqlalchemy.and_(
+        UsersApiKeys.key == token
+    )).first()
+    user: Users = session.query(Users).filter(sqlalchemy.and_(
+        Users.user_id == api_obj.user_id
+    )).first()
+    return user
