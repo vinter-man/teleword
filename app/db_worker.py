@@ -96,7 +96,7 @@ class UsersApiKeys(Base):
     __tablename__ = 'apikeys'
 
     key_id = sqlalchemy.Column(sqlalchemy.Integer, autoincrement=True, primary_key=True)
-    key = sqlalchemy.Column(sqlalchemy.String(36), nullable=False)
+    key = sqlalchemy.Column(sqlalchemy.String(130), nullable=False)
     user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.user_id'))
 
 
@@ -579,7 +579,7 @@ def delete_data(data_type: str, data_id: int):
 # api.py
 def generate_api_keys(user: Users):
     session.add(UsersApiKeys(
-        key=secrets.token_urlsafe(36),
+        key=secrets.token_urlsafe(64),
         user_id=user.user_id
     ))
     session.commit()

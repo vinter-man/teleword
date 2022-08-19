@@ -63,8 +63,7 @@ async def api_cmd(message: types.Message, state: FSMContext):
 
     if is_api:     # user is already has an api_keys
         answer = text(
-            bold('Your public API key:'), code(db_worker.get_public_key(user=sql_user)), '\n',
-            r'If you still do not have a private api key - contact the administrator'
+            r'If you still do not have a private api key \- contact the administrator'
         )
         remove_keyboard = types.ReplyKeyboardRemove()
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
@@ -175,9 +174,9 @@ async def ms_get_phone_sql_admin_send(message: types.Message, state: FSMContext)
     try:
         answer = text(
             bold('API private key request'), '\n',
-            r'Phone\:', italic(f' {phone_number}'), '\n',
+            r'Phone\:', code(f' {phone_number}'), '\n',
             r'Purpose\:', italic(f' {purpose}'), '\n',
-            r'Key to send\:', italic(f' {db_worker.get_user_api_key(user=sql_user)}'), '\n',
+            r'Key to send\:', code(f' {db_worker.get_user_api_key(user=sql_user)}'), '\n',
         )
         await message.bot.send_message(ADMIN_ID_TG, answer, parse_mode=ParseMode.MARKDOWN_V2)
     except Exception as e:
