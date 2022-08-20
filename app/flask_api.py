@@ -22,6 +22,7 @@ logging.basicConfig(
 class Words(Resource):     # Resource - restfull king
 
     def get(self, token):
+
         try:
             sql_user = db_worker.get_user_by_api_key(token=token)
         except Exception as e:
@@ -29,6 +30,7 @@ class Words(Resource):     # Resource - restfull king
             return {'error': 'Could not find a user with this key, please check your key and try again'}, 404
         else:
             logger.info(f'[{sql_user.nickname}] GET WORDS')
+
         try:
             data_path = db_worker.create_file_with_user_words(
                 user_tg_id=str(sql_user.tg_id),
@@ -42,6 +44,7 @@ class Words(Resource):     # Resource - restfull king
             return {'error': 'Failed to collect words from data base for query'}, 404
         else:
             logger.info(f'[{sql_user.nickname}] WORDS DATA IN "{data_path}"')
+
         try:
             file = open(data_path, 'r', encoding='utf-8')
             data = json.load(file)
@@ -55,12 +58,39 @@ class Words(Resource):     # Resource - restfull king
             return data
 
 
+class Lesson(Resource):
+
+    def get(self, token):
+
+        try:
+            sql_user = db_worker.get_user_by_api_key(token=token)
+        except Exception as e:
+            logger.warning(f'[{token}] Can`t find user id "{e}"')
+            return {'error': 'Could not find a user with this key, please check your key and try again'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] GET LESSON')
+
+        try:
+            data = db_worker.get_lesson_data(tg_id=sql_user.tg_id)
+        except db_worker.MinLenError as e:
+            logger.error(f'[{sql_user.nickname}] Can`t make data file "{e}"')
+            return {'error': f'Not enough words for lesson. You have {e}, minimum 15'}, 404
+        except Exception as e:
+            logger.error(f'[{sql_user.nickname}] Can`t make data file "{e}"')
+            return {'error': 'Failed to collect lesson from data base for query'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] LESSON DATA ({len(data)})')
+            logger.info(f'[{sql_user.nickname}] SUCCESS GET LESSON')
+            return data
+
+
 ########################################################################################################################
 ########################################################################################################################
 if __name__ == '__main__':
     app = Flask(__name__)
     api = Api(app)
     api.add_resource(Words, '/api/words/<string:token>')
+    api.add_resource(Lesson, '/api/lesson/<string:token>')
     api.init_app(app)
     app.run(
         debug=True,
@@ -78,3 +108,4 @@ if __name__ == '__main__':
 # put_example {"example_id": "...",  "example": "..."}
 # delete_example {"example_id"}
 
+# instruction for users

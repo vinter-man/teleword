@@ -17,6 +17,7 @@ from aiogram.dispatcher.filters import Text
 from config.config import APP_KEY_OXF, APP_ID_OXF, URL_OXF
 
 from .. import db_worker
+from ..db_worker import MinLenError
 
 
 ########################################################################################################################
@@ -37,103 +38,6 @@ class ConductLesson(StatesGroup):
 
 
 ########################################################################################################################
-class MinLenError(TypeError):
-    """
-    It occurs when a lesson requests when the user does not have enough words
-    """
-
-
-def get_lesson_data(tg_id: str) -> list:
-    """
-    independent action
-        accepts a db_worker.Users instance (further "user")
-        collects the user's words
-        if there are less than 15 words - raises an exception
-        makes a sequence of tests depending on the rating of the word
-        Adds wrong answers depending on the speech type of the word
-        Returns a list filled with 15-lists of 4 words
-        of dict {'tg_id', 'word', 'description', 'example', 'category', 'rating', 'word_id', 'is_main'}
-    """
-    logger.info(f'{tg_id} Start get_lesson_data')
-    words = db_worker.get_words_data(user_tg_id=tg_id)
-    words_len = len(words)
-    if words_len < 15:
-        raise MinLenError(f"{words_len}")
-    words.sort(key=lambda word: word['rating'], reverse=True)
-
-    # the most difficult words are better learned 1/3(5):
-    # 1 - 3 when repeated at the beginning (as a work on mistakes)
-    # 14 - 15 and as the last tasks (like a boss in a video game,
-    # so that the player has fun after passing)
-    difficult_words = words[:5]
-    random.shuffle(difficult_words)
-    remaining_words = words[5:]
-    random.shuffle(remaining_words)
-    easy_words = remaining_words[:10]
-    words_for_lesson = collections.deque(
-        iterable=difficult_words[:3] + easy_words + difficult_words[3:],
-        maxlen=15
-    )
-    data_for_lesson = []
-    # data for the test 15 tests (1 correct and 3 wrong answers)
-    for i in range(len(words_for_lesson)):
-        random.shuffle(words)  # i mix each time, to improve accident
-        test_words = []  # 4 words, in the first place is always correct
-
-        right_word = words_for_lesson.popleft()
-        test_words.append(right_word)
-
-        for word in words:
-            if len(test_words) == 4:  # 4 words
-                break
-            if word not in test_words and word["category"] == right_word["category"]:
-                # the best learning effect is when the words are not just random,
-                # but belong to the same part of speech ...
-                wrong_word = word
-                test_words.append(wrong_word)
-
-        if len(test_words) != 4:  # ... but the user does not always have enough words ...
-            for word in words:
-                if len(test_words) == 4:
-                    break
-                if word not in test_words:
-                    # ... therefore, fill in the missing ones in order,
-                    # random.shuffle at the beginning will prevent repetitions
-                    wrong_word = word
-                    test_words.append(wrong_word)
-
-        data_for_lesson.append(test_words)
-
-    # [[{w}, {w}, {w}, {w}], ...]
-
-    # It may be that the user has added the same word with different examples,
-    # in this case there will be several correct answers.
-    # This approach is quite good because the word will be remembered in several contexts
-    ready_tasks = []
-    for task in data_for_lesson:
-        task = copy.deepcopy(task)     # Each test should not affect the state of all words in general
-        main_correct_word = task[0]
-        main_correct_word["is_main"] = True
-        correct_pattern = main_correct_word["word"].lower().strip()
-        for w in task:
-            w_pattern = w["word"].lower().strip()
-            if w_pattern == correct_pattern:
-                w["is_correct"] = True
-            else:
-                w["is_correct"] = False
-
-        current_lesson_data = {'a': None, 'b': None, 'c': None, 'd': None}
-        random.shuffle(task)  # answer options mixed
-        for n, k in enumerate(current_lesson_data.keys()):
-            current_lesson_data[k] = task[n]
-
-        ready_tasks.append(current_lesson_data)
-
-    # [{aw, bw, cw, dw}, {}, {}, {}, ...]
-    logger.info(f'{tg_id} Return data for lesson')
-    return ready_tasks
-
-
 async def lesson_cmd(message: types.Message, state: FSMContext):
     """
     0 action
@@ -151,7 +55,7 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
     await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)  # comfortable waiting
 
     try:
-        lesson_data = get_lesson_data(str(message.chat.id))
+        lesson_data = db_worker.get_lesson_data(str(message.chat.id))
     except MinLenError as e:
         logger.info(f'{username} Not enough words for lesson')
         answer = text(
