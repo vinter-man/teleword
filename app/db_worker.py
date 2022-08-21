@@ -203,7 +203,7 @@ def add_example(example_text: str, user_tg_id: str) -> UsersExamples:
     return example_to_add
 
 
-def add_word(word: str, description: str, category: str, rating: int, example: UsersExamples):
+def add_word(word: str, description: str, category: str, rating: int, example: UsersExamples) -> UsersExamplesWords:
     """Adding new word to 'words' table"""
 
     word_in = session.query(UsersExamplesWords).filter(sqlalchemy.and_(
@@ -214,7 +214,7 @@ def add_word(word: str, description: str, category: str, rating: int, example: U
 
     if word_in:
         logger.warning(f'| {word, example.ex_id} | word already added')
-        return
+        return word_in
 
     word_to_add = UsersExamplesWords(
         word=word,
@@ -226,6 +226,7 @@ def add_word(word: str, description: str, category: str, rating: int, example: U
     session.add(word_to_add)
     session.commit()
     logger.info(f'| {word, example.ex_id} | word successfully added')
+    return word_to_add
 
 
 ########################################################################################################################
