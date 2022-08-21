@@ -183,6 +183,58 @@ class Example(Resource):
                'user_id': sql_example.user_id
             }, 200
 
+    def put(self, token, example_id):
+
+        try:
+            sql_user = db_worker.get_user_by_api_key(token=token)
+        except Exception as e:
+            logger.warning(f'[{token}] Can`t find user id "{e}"')
+            return {'error': 'Could not find a user with this key, please check your key and try again'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] PUT EXAMPLE')
+
+        try:
+            sql_example = db_worker.get_example(example_id=example_id)
+            new_example_data = frequest.form.to_dict()
+            example = new_example_data['example']
+            example_len = len(example)
+            if example_len > 400 or example_len < 5:
+                raise LengthError(f"{example_len}")
+            if not sql_example.user_id == sql_user.user_id:
+                raise AccessError
+        except LengthError as e:
+            logger.error(f'[{sql_user.nickname}] Can`t write data. Wrong length "{e}"')
+            return {'error': f'Not right length for example. You have {e}, min 5 - max 400'}, 404
+        except AccessError as e:
+            logger.error(f'[{sql_user.nickname}] Can`t get data. Access denied "{e}"')
+            return {'error': f'A user with such a token does not have access rights to an example with this id'}, 404
+        except Exception as e:
+            logger.error(f'[{sql_user.nickname}] Can`t write data "{e}"')
+            return {'error': 'Failed to process your example object - check the correctness of the form data'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] EXAMPLE IS READY TO BE EDIT')
+
+        try:
+            db_worker.update_data(
+                data_type='example',
+                data_id=sql_example.ex_id,
+                new_data=example
+            )
+            sql_example = db_worker.get_example(
+                example_id=sql_example.ex_id
+            )
+            returned_data = {
+                'ex_id': sql_example.ex_id,
+                'example': sql_example.example,
+                'user_id': sql_example.user_id
+            }
+        except Exception as e:
+            logger.error(f'[{sql_user.nickname}] Can`t write data from sql "{e}"')
+            return {'error': 'Failed to process your example object - check the correctness of the form data'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] SUCCESS PUT EXAMPLE')
+            return returned_data, 200
+
 
 class Word(Resource):
 
@@ -235,12 +287,12 @@ class Word(Resource):
             logger.info(f'[{sql_user.nickname}] POST WORD')
 
         try:
-            new_example_data = frequest.form.to_dict()
-            word = new_example_data['word']
+            new_word_data = frequest.form.to_dict()
+            word = new_word_data['word']
             word_len = len(word)
-            description = new_example_data['description']
+            description = new_word_data['description']
             description_len = len(description)
-            example_id = int(new_example_data['ex_id'])
+            example_id = int(new_word_data['ex_id'])
             sql_example = db_worker.get_example(example_id)
             if not sql_example.user_id == sql_user.user_id:
                 raise AccessError(f'Data owner: {sql_example.user_id}, Query owner: {sql_user.user_id}')
@@ -281,6 +333,70 @@ class Word(Resource):
                        'example_id': sql_word.example_id
                    }, 200
 
+    def put(self, token, word_id):
+
+        try:
+            sql_user = db_worker.get_user_by_api_key(token=token)
+        except Exception as e:
+            logger.warning(f'[{token}] Can`t find user id "{e}"')
+            return {'error': 'Could not find a user with this key, please check your key and try again'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] PUT WORD')
+
+        try:
+            sql_word = db_worker.get_word(word_id=word_id)
+            sql_example = db_worker.get_example(example_id=int(sql_word.example_id))
+            new_word_data = frequest.form.to_dict()
+            word = new_word_data['word']
+            word_len = len(word)
+            description = new_word_data['description']
+            description_len = len(description)
+            if not sql_example.user_id == sql_user.user_id:
+                raise AccessError(f'Data owner: {sql_example.user_id}, Query owner: {sql_user.user_id}')
+            if word_len > 135 or word_len < 1:
+                raise LengthError(f"{word_len}")
+            if description_len > 400 or description_len < 1:
+                raise LengthError(f"{description_len}")
+        except LengthError as e:
+            logger.error(f'[{sql_user.nickname}] Can`t write data. Wrong length "{e}"')
+            return {'error': f'Not right length for word or description. You have {e},'
+                                                                 f' min 1 - max 135(word) | max 400(description)'}, 404
+        except AccessError as e:
+            logger.error(f'[{sql_user.nickname}] Can`t write data. Access denied "{e}"')
+            return {'error': f'A user with such a token does not have access rights to an example with this id'}, 404
+        except Exception as e:
+            logger.error(f'[{sql_user.nickname}] Can`t write data "{e}"')
+            return {'error': 'Failed to process your word object - check the correctness of the form data'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] WORD IS READY TO BE UPDATED')
+
+        try:
+            db_worker.update_data(
+                data_type='word',
+                data_id=sql_word.word_id,
+                new_data=word
+            )
+            db_worker.update_data(
+                data_type='description',
+                data_id=sql_word.word_id,
+                new_data=description
+            )
+            sql_word = db_worker.get_word(
+                word_id=sql_word.word_id
+            )
+            returned_data = {
+                'word_id': sql_word.word_id,
+                'word': sql_word.word,
+                'description': sql_word.description,
+                'example_id': sql_word.example_id
+            }
+        except Exception as e:
+            logger.error(f'[{sql_user.nickname}] Can`t write data from sql "{e}"')
+            return {'error': 'Failed to process your word object - check the correctness of the form data'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] SUCCESS PUT WORD')
+            return returned_data, 200
+
 
 ########################################################################################################################
 ########################################################################################################################
@@ -297,10 +413,7 @@ if __name__ == '__main__':
     )
 
 
-# put_example {"example_id": "...",  "example": "..."}
 # delete_example {"example_id"}
-
-# put_word {'word_id': '...', word": "treated", "description": "..."}
 # delete_word {'word_id'}
 
 # instruction for users
