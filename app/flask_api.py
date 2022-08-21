@@ -106,7 +106,43 @@ class Lesson(Resource):
 
 class Example(Resource):
 
-    def post(self, token):
+    def get(self, token, example_id):
+
+        try:
+            sql_user = db_worker.get_user_by_api_key(token=token)
+        except Exception as e:
+            logger.warning(f'[{token}] Can`t find user id "{e}"')
+            return {'error': 'Could not find a user with this key, please check your key and try again'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] GET EXAMPLE')
+
+        try:
+            sql_example = db_worker.get_example(example_id)
+            if not sql_example.user_id == sql_user.user_id:
+                raise AccessError
+        except AccessError as e:
+            logger.error(f'[{sql_user.nickname}] Can`t get data. Access denied "{e}"')
+            return {'error': f'A user with such a token does not have access rights to an example with this id'}, 404
+        except Exception as e:
+            logger.error(f'[{sql_user.nickname}] Can`t write data "{e}"')
+            return {'error': 'Failed to process your example object - check the correctness of the form data'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] EXAMPLE IS READY TO BE RETURNED')
+
+        try:
+            returned_data = {
+               'ex_id': sql_example.ex_id,
+               'example': sql_example.example,
+               'user_id': sql_example.user_id
+            }
+        except Exception as e:
+            logger.error(f'[{sql_user.nickname}] Can`t write data from sql "{e}"')
+            return {'error': 'Failed to process your example object - check the correctness of the form data'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] SUCCESS GET EXAMPLE')
+            return returned_data, 200
+
+    def post(self, token, example_id):
 
         try:
             sql_user = db_worker.get_user_by_api_key(token=token)
@@ -150,7 +186,45 @@ class Example(Resource):
 
 class Word(Resource):
 
-    def post(self, token):
+    def get(self, token, word_id):
+
+        try:
+            sql_user = db_worker.get_user_by_api_key(token=token)
+        except Exception as e:
+            logger.warning(f'[{token}] Can`t find user id "{e}"')
+            return {'error': 'Could not find a user with this key, please check your key and try again'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] GET WORD')
+
+        try:
+            sql_word = db_worker.get_word(word_id)
+            sql_example = db_worker.get_example(sql_word.example_id)
+            if not sql_example.user_id == sql_user.user_id:
+                raise AccessError
+        except AccessError as e:
+            logger.error(f'[{sql_user.nickname}] Can`t get data. Access denied "{e}"')
+            return {'error': f'A user with such a token does not have access rights to an word with this id'}, 404
+        except Exception as e:
+            logger.error(f'[{sql_user.nickname}] Can`t write data "{e}"')
+            return {'error': 'Failed to process your word object - check the correctness of the form data'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] WORD IS READY TO BE RETURNED')
+
+        try:
+            returned_data = {
+                'word_id': sql_word.word_id,
+                'word': sql_word.word,
+                'description': sql_word.description,
+                'example_id': sql_word.example_id
+            }
+        except Exception as e:
+            logger.error(f'[{sql_user.nickname}] Can`t write data from sql "{e}"')
+            return {'error': 'Failed to process your word object - check the correctness of the form data'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] SUCCESS GET WORD')
+            return returned_data, 200
+
+    def post(self, token, word_id):
 
         try:
             sql_user = db_worker.get_user_by_api_key(token=token)
@@ -213,8 +287,8 @@ class Word(Resource):
 if __name__ == '__main__':
     api.add_resource(Words, '/api/words/<string:token>')
     api.add_resource(Lesson, '/api/lesson/<string:token>')
-    api.add_resource(Example, '/api/example/<string:token>')
-    api.add_resource(Word, '/api/word/<string:token>')
+    api.add_resource(Example, '/api/example/<string:token>/<int:example_id>')
+    api.add_resource(Word, '/api/word/<string:token>/<int:word_id>')
     api.init_app(app)
     app.run(
         debug=True,
@@ -223,13 +297,11 @@ if __name__ == '__main__':
     )
 
 
-# get example by id
 # put_example {"example_id": "...",  "example": "..."}
 # delete_example {"example_id"}
 
+# put_word {'word_id': '...', word": "treated", "description": "..."}
 # delete_word {'word_id'}
-# post_word {word": "treated", "description": "...", "example": "..."}
-# put_word_or_description {'word_id': '...', word": "treated", "description": "..."}
 
 # instruction for users
 
