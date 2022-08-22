@@ -235,6 +235,50 @@ class Example(Resource):
             logger.info(f'[{sql_user.nickname}] SUCCESS PUT EXAMPLE')
             return returned_data, 200
 
+    def delete(self, token, example_id):
+
+        try:
+            sql_user = db_worker.get_user_by_api_key(token=token)
+        except Exception as e:
+            logger.warning(f'[{token}] Can`t find user id "{e}"')
+            return {'error': 'Could not find a user with this key, please check your key and try again'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] DELETE EXAMPLE')
+
+        try:
+            sql_example = db_worker.get_example(example_id=example_id)
+            if not sql_example.user_id == sql_user.user_id:
+                raise AccessError
+        except AccessError as e:
+            logger.error(f'[{sql_user.nickname}] Can`t delete data. Access denied "{e}"')
+            return {'error': f'A user with such a token does not have access rights to an example with this id'}, 404
+        except Exception as e:
+            logger.error(f'[{sql_user.nickname}] Can`t write data "{e}"')
+            return {'error': 'Failed to process your example object - check the correctness of the form data'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] EXAMPLE IS READY TO BE DELETED')
+
+        try:
+            db_worker.delete_data(
+                data_type='example',
+                data_id=example_id
+            )
+            sql_example = db_worker.get_example(example_id)
+            returned_data = {
+                'success': 'Your data has been successfully deleted'
+            }
+            if sql_example:
+                raise RuntimeError('Data was not successfully deleted from sql table')
+        except RuntimeError as e:
+            logger.error(f'[{sql_user.nickname}] Can`t delete data from sql "{e}"')
+            return {'error': 'Data was not successfully deleted from table, problem on our end, please try again'}, 404
+        except Exception as e:
+            logger.error(f'[{sql_user.nickname}] Can`t delete data from sql "{e}"')
+            return {'error': 'Failed to process your example object - check the correctness of the data id'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] SUCCESS DELETE EXAMPLE')
+            return returned_data, 200
+
 
 class Word(Resource):
 
@@ -397,6 +441,51 @@ class Word(Resource):
             logger.info(f'[{sql_user.nickname}] SUCCESS PUT WORD')
             return returned_data, 200
 
+    def delete(self, token, word_id):
+
+        try:
+            sql_user = db_worker.get_user_by_api_key(token=token)
+        except Exception as e:
+            logger.warning(f'[{token}] Can`t find user id "{e}"')
+            return {'error': 'Could not find a user with this key, please check your key and try again'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] DELETE WORD')
+
+        try:
+            sql_word = db_worker.get_word(word_id=word_id)
+            sql_example = db_worker.get_example(example_id=int(sql_word.example_id))
+            if not sql_example.user_id == sql_user.user_id:
+                raise AccessError(f'Data owner: {sql_example.user_id}, Query owner: {sql_user.user_id}')
+        except AccessError as e:
+            logger.error(f'[{sql_user.nickname}] Can`t delete data. Access denied "{e}"')
+            return {'error': f'A user with such a token does not have access rights to an example with this id'}, 404
+        except Exception as e:
+            logger.error(f'[{sql_user.nickname}] Can`t delete data "{e}"')
+            return {'error': 'Failed to process your word object - check the correctness of the data id'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] WORD IS READY TO BE DELETED')
+
+        try:
+            db_worker.delete_data(
+                data_type='word',
+                data_id=word_id
+            )
+            sql_word = db_worker.get_word(word_id)
+            returned_data = {
+                'success': 'Your data has been successfully deleted'
+            }
+            if sql_word:
+                raise RuntimeError('Data was not successfully deleted from sql table')
+        except RuntimeError as e:
+            logger.error(f'[{sql_user.nickname}] Can`t delete data from sql "{e}"')
+            return {'error': 'Data was not successfully deleted from table, problem on our end, please try again'}, 404
+        except Exception as e:
+            logger.error(f'[{sql_user.nickname}] Can`t delete data from sql "{e}"')
+            return {'error': 'Failed to process your word object - check the correctness of the data id'}, 404
+        else:
+            logger.info(f'[{sql_user.nickname}] SUCCESS DELETE WORD')
+            return returned_data, 200
+
 
 ########################################################################################################################
 ########################################################################################################################
@@ -413,9 +502,6 @@ if __name__ == '__main__':
     )
 
 
-# delete_example {"example_id"}
-# delete_word {'word_id'}
+# telegram api-instruction for users
 
-# instruction for users
-
-# api to thread from bot
+# api to another thread \ subprocess from bot
