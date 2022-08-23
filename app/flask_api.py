@@ -10,6 +10,8 @@ from flask_restful import Api, Resource, reqparse
 
 import db_worker
 
+from config.config import HOST
+
 
 ########################################################################################################################
 logger = logging.getLogger(__name__)
@@ -498,7 +500,7 @@ if __name__ == '__main__':
     app.run(
         debug=True,
         port=3000,
-        host='127.0.0.1'
+        host=HOST
     )
 
 

@@ -17,7 +17,7 @@ from aiogram.utils.markdown import text, bold, italic, code, pre
 from aiogram.utils.emoji import emojize
 from aiogram.types import ParseMode, InputMediaPhoto, InputMediaVideo, ChatActions
 from aiogram.dispatcher.filters import Text
-from config.config import APP_KEY_OXF, APP_ID_OXF, URL_OXF, ADMIN_ID_TG
+from config.config import APP_KEY_OXF, APP_ID_OXF, URL_OXF, ADMIN_ID_TG, HOST
 
 from .. import db_worker
 
@@ -192,6 +192,13 @@ async def ms_get_phone_sql_admin_send(message: types.Message, state: FSMContext)
 
     answer = text(
         r"Cool\, now all you have to do is wait for the admin to give you a private token")
+    await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+
+    answer = text(
+        bold('Instructions for using api requests:'), '\n',
+        code(fr'http://{HOST}/api/words/<string:token>'), r'\- GET (outputs all your words data)', '\n',
+
+    )
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
 
     logger.info(f'[{username}]: Finish /api command')
