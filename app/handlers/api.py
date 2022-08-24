@@ -67,6 +67,41 @@ async def api_cmd(message: types.Message, state: FSMContext):
         )
         remove_keyboard = types.ReplyKeyboardRemove()
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
+        answer = text(
+            bold('Instructions for using api requests:'), '\n',
+            '\n',
+            bold('GET'),
+            code(fr'http://{HOST}/api/words/<your_token>'), r'\- outputs all your words data', '\n',
+            bold('GET'),
+            code(fr'http://{HOST}/api/lesson/<your_token>'), r'\- forms and outputs the lesson', '\n',
+            bold('GET'),
+            code(fr'http://{HOST}/api/example/<your_token>/<example_id>'), r'\- displays example data by id', '\n',
+            bold('GET'),
+            code(fr'http://{HOST}/api/word/<your_token>/<word_id>'), r'\- displays word data by id', '\n',
+            '\n',
+            bold('POST'),
+            code(fr'http://{HOST}/api/example/<your_token>/0'),
+            code('{"example": "<your_example>"}'), r'\- writes the example to the database', '\n',
+            bold('POST'),
+            code(fr'http://{HOST}/api/word/<your_token>/0'),
+            code('{"word": "<your_word>", "description": "<your_description>, "ex_id": "<your_example_id>"}'),
+            r'\- writes the word to the database', '\n',
+            '\n',
+            bold('PUT'),
+            code(fr'http://{HOST}/api/example/<your_token>/<example_id>'),
+            code('{"example": "<your_example>"}'), r'\- updates the example data', '\n',
+            bold('PUT'),
+            code(fr'http://{HOST}/api/word/<your_token>/<word_id>'),
+            code('{"word": "<your_word>", "description": "<your_description>}'), r'\- updates the word data', '\n',
+            '\n',
+            bold('DELETE'),
+            code(fr'http://{HOST}/api/word/<your_token>/<word_id>'),
+            r'\- removes the word and if the example is left empty it too', '\n',
+            bold('DELETE'),
+            code(fr'http://{HOST}/api/example/<your_token>/<example_id>'),
+            r'\- removes the example and all its words', '\n',
+        )
+        await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         logger.info(f'[{username}]: Finish /api command')
         await state.reset_state(with_data=False)
         return
@@ -196,13 +231,41 @@ async def ms_get_phone_sql_admin_send(message: types.Message, state: FSMContext)
 
     answer = text(
         bold('Instructions for using api requests:'), '\n',
-        code(fr'http://{HOST}/api/words/<string:token>'), r'\- GET (outputs all your words data)', '\n',
-
-    )
+        '\n',
+        bold('GET'),
+            code(fr'http://{HOST}/api/words/<your_token>'), r'\- outputs all your words data', '\n',
+        bold('GET'),
+            code(fr'http://{HOST}/api/lesson/<your_token>'), r'\- forms and outputs the lesson', '\n',
+        bold('GET'),
+            code(fr'http://{HOST}/api/example/<your_token>/<example_id>'), r'\- displays example data by id', '\n',
+        bold('GET'),
+            code(fr'http://{HOST}/api/word/<your_token>/<word_id>'), r'\- displays word data by id', '\n',
+        '\n',
+        bold('POST'),
+            code(fr'http://{HOST}/api/example/<your_token>/0'), bold('->'),
+                code('{"example": "<your_example>"}'), r'\- writes the example to the database', '\n',
+        bold('POST'),
+            code(fr'http://{HOST}/api/word/<your_token>/0'), bold('->'),
+                code('{"word": "<your_word>", "description": "<your_description>, "ex_id": "<your_example_id>"}'),
+                    r'\- writes the word to the database', '\n',
+        '\n',
+        bold('PUT'),
+            code(fr'http://{HOST}/api/example/<your_token>/<example_id>'), bold('->'),
+                code('{"example": "<your_example>"}'), r'\- updates the example data', '\n',
+        bold('PUT'),
+            code(fr'http://{HOST}/api/word/<your_token>/<word_id>'), bold('->'),
+                code('{"word": "<your_word>", "description": "<your_description>}'), r'\- updates the word data', '\n',
+        '\n',
+        bold('DELETE'),
+            code(fr'http://{HOST}/api/word/<your_token>/<word_id>'),
+                r'\- removes the word and if the example is left empty it too', '\n',
+        bold('DELETE'),
+            code(fr'http://{HOST}/api/example/<your_token>/<example_id>'),
+                r'\- removes the example and all its words', '\n',
+        '\n')
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
 
     logger.info(f'[{username}]: Finish /api command')
-
     await state.reset_state(with_data=False)
 
 
