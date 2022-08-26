@@ -503,7 +503,4 @@ if __name__ == '__main__':
         host=HOST
     )
 
-
-# telegram api-instruction for users
-
 # api to another thread \ subprocess from bot
