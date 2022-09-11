@@ -1,30 +1,25 @@
 import json
 import logging
+import time
 import sys
 import os
 
 from flask import Flask
 from flask import request as frequest
-from flask import jsonify
 from flask_restful import Api, Resource, reqparse
 
-import db_worker
+from app import db_worker
 
-from config.config import HOST
+from config.config import HOST, PORT
 
 
 ########################################################################################################################
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-        level=logging.INFO,
-        stream=sys.stdout,
-        format='[%(asctime)s]:[%(levelname)s]:[%(filename)s]:[%(lineno)d]: %(message)s',
-    )
-
-
-########################################################################################################################
-app = Flask(__name__)
-api = Api(app)
+    level=logging.INFO,
+    stream=sys.stdout,
+    format='[%(asctime)s]:[%(levelname)s]:[%(filename)s]:[%(lineno)d]: %(message)s',
+)
 
 
 ########################################################################################################################
@@ -56,7 +51,7 @@ class Words(Resource):     # Resource - restfull king
         try:
             data_path = db_worker.create_file_with_user_words(
                 user_tg_id=str(sql_user.tg_id),
-                file_path='../temporary',
+                file_path='temporary',
                 file_type='json',
                 sql_filter_key='default',
                 sql_sort_key='all my words',
@@ -490,17 +485,35 @@ class Word(Resource):
 
 
 ########################################################################################################################
-########################################################################################################################
-if __name__ == '__main__':
+def main():
+    # Create an api object
+    app = Flask(__name__)
+    api = Api(app)
+
+    # Add query interface
     api.add_resource(Words, '/api/words/<string:token>')
     api.add_resource(Lesson, '/api/lesson/<string:token>')
     api.add_resource(Example, '/api/example/<string:token>/<int:example_id>')
     api.add_resource(Word, '/api/word/<string:token>/<int:word_id>')
+
+    # Initialize and run
     api.init_app(app)
     app.run(
         debug=True,
-        port=3000,
+        port=PORT,
         host=HOST
     )
 
-# api to another thread \ subprocess from bot
+
+########################################################################################################################
+if __name__ == '__main__':
+    logger.info("Starting api")
+    while True:
+        try:
+            main()
+        except Exception as e:
+            second = 2.5
+            logger.error(f'FlaskError. Restart after {second} (sec.) \n\n{e}\n\n')
+            time.sleep(second)
+
+

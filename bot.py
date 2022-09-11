@@ -67,15 +67,15 @@ async def main():
 
 
 ########################################################################################################################
-while True:
-    try:
-        if __name__ == '__main__':
+if __name__ == '__main__':
+    while True:
+        try:
             asyncio.run(main())
-    except aiogram.utils.exceptions.NetworkError as e:
-        second = 2.5
-        logger.error(f'NetworkError. Restart after {second} (sec.) \n\n{e}\n\n')
-        time.sleep(second)
-    except exc.DatabaseError as e:
-        second = 0.5
-        logger.error(f'MySQL server NetworkError. Restart after {second} (sec.) \n\n{e}\n\n')
-        time.sleep(second)
+        except aiogram.utils.exceptions.NetworkError as e:
+            second = 2.5
+            logger.error(f'NetworkError. Restart after {second} (sec.) \n\n{e}\n\n')
+            time.sleep(second)
+        except exc.DatabaseError as e:
+            second = 0.5
+            logger.error(f'MySQL server NetworkError. Restart after {second} (sec.) \n\n{e}\n\n')
+            time.sleep(second)
