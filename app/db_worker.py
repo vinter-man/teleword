@@ -20,7 +20,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy.exc
 
-from config.config import MY_SQL, APP_KEY_OXF, APP_ID_OXF, URL_OXF
+from config.config import MY_SQL, APP_KEY_OXF, APP_ID_OXF, URL_OXF, ADMIN_ID_TG
 
 
 
@@ -739,3 +739,15 @@ def get_user_by_api_key(token: str) -> Users:
         Users.user_id == api_obj.user_id
     )).first()
     return user
+
+
+########################################################################################################################
+# teleword.py
+def is_connection_alive() -> bool:
+    try:
+        get_user(ADMIN_ID_TG)
+    except mysql.connector.errors.OperationalError as e:
+        logger.error(f'Connection is dead {e}')
+        return False
+    finally:
+        return True
