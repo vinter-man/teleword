@@ -33,7 +33,8 @@ def status_checker(processes: list):
 
         if not is_connection_alive():
             for process in processes:
-                process.terminate()
+                process.stop()
+                process.join()
                 process.start()
 
         time.sleep(900)

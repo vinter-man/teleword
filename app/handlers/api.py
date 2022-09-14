@@ -17,7 +17,7 @@ from aiogram.utils.markdown import text, bold, italic, code, pre
 from aiogram.utils.emoji import emojize
 from aiogram.types import ParseMode, InputMediaPhoto, InputMediaVideo, ChatActions
 from aiogram.dispatcher.filters import Text
-from config.config import APP_KEY_OXF, APP_ID_OXF, URL_OXF, ADMIN_ID_TG, HOST
+from config.config import APP_KEY_OXF, APP_ID_OXF, URL_OXF, ADMIN_ID_TG, HOST, PORT
 
 from .. import db_worker
 
@@ -233,35 +233,79 @@ async def ms_get_phone_sql_admin_send(message: types.Message, state: FSMContext)
         bold('Instructions for using api requests:'), '\n',
         '\n',
         bold('GET'),
-            code(fr'http://{HOST}/api/words/<your_token>'), r'\- outputs all your words data', '\n',
+            code(fr'http://{HOST}:{PORT}/api/words/<your_token>'), r'\- outputs all your words data\.',
+                r'Response example\:', code(
+                    '{"1":{"word": "Arrow", "description": "A weapon consisting of a thin, straight stick with a sharp '
+                    'point, designed to be shot from a bow.", "example_id": "1", "example": "We just imagine the arrows'
+                    ' because we fear them.", ...}'
+            ), '\n',
         bold('GET'),
-            code(fr'http://{HOST}/api/lesson/<your_token>'), r'\- forms and outputs the lesson', '\n',
+            code(fr'http://{HOST}:{PORT}/api/lesson/<your_token>'), r'\- forms and outputs the lesson',
+                r'Response example\:', code(
+            '[{"a": {"tg_id": 2, "word": "dizzy", "description": "make (someone) feel unsteady, confused, or amazed", '
+            '"example": "Pops, what would you rather do? Spin around and get dizzy, or look at naked people", '
+            '"category": "Adjective", "rating": 0, "word_id": 72, "is_main": false, "is_correct": false}, "b": '
+            '{"tg_id": 2, "word": "canned", "description": "preserved or supplied in a sealed can.\ndrunk. (in can like'
+            ' in botle)", "example": "Not a word to your mom about me getting canned\n\"canned beans\"", "category":'
+            ' "Adjective", "rating": -3, "word_id": 45, "is_main": false, "is_correct": false}, "c": { "tg_id": 2, '
+            '"word": "uncaring", "description": "not displaying sympathy or concern for others.", "example": "The '
+            'universe is a cruel uncaring void\n\"people who are cruel to animals\"\n\"an uncaring father\"", '
+            '"category": "Adjective", "rating": -3, "word_id": 38, "is_main": false, "is_correct": false}, "d": '
+            '{ "tg_id": 2, "word": "sore", "description": "(of a part of body) painful or aching.\nsuffering pain from '
+            'a part of body.\nupset and angry.", "example": "Are you a detective? Yes my gums are sore! Enough of '
+            'this!", "category": "Adjective", "rating": -1, "word_id": 53, "is_main": true, "is_correct": true}, ...},'
+            ), '\n',
         bold('GET'),
-            code(fr'http://{HOST}/api/example/<your_token>/<example_id>'), r'\- displays example data by id', '\n',
+            code(fr'http://{HOST}:{PORT}/api/example/<your_token>/<example_id>'), r'\- displays example data by id',
+                r'Response example\:', code(
+            '{"ex_id": 14, "example": "Madame Web says we are each from different dimensions", "user_id": 2}'
+            ), '\n',
         bold('GET'),
-            code(fr'http://{HOST}/api/word/<your_token>/<word_id>'), r'\- displays word data by id', '\n',
+            code(fr'http://{HOST}:{PORT}/api/word/<your_token>/<word_id>'), r'\- displays word data by id',
+                r'Response example\:', code(
+            '{"word_id": 16, "word": "dimension", "description": "a measurable extent of a particular kind, such as '
+            'length, breadth, depth, or height.", "example_id": 14}'
+            ), '\n',
         '\n',
         bold('POST'),
-            code(fr'http://{HOST}/api/example/<your_token>/0'), bold('->'),
-                code('{"example": "<your_example>"}'), r'\- writes the example to the database', '\n',
+            code(fr'http://{HOST}:{PORT}/api/example/<your_token>/0'), bold('->'),
+                code('{"example": "<your_example>"}'), r'\- writes the example to the database',
+                    r'Response example\:', code(
+                '{"ex_id": 100, "example": "<your_example>", "user_id": 2}'
+        ), '\n',
         bold('POST'),
-            code(fr'http://{HOST}/api/word/<your_token>/0'), bold('->'),
+            code(fr'http://{HOST}:{PORT}/api/word/<your_token>/0'), bold('->'),
                 code('{"word": "<your_word>", "description": "<your_description>, "ex_id": "<your_example_id>"}'),
-                    r'\- writes the word to the database', '\n',
+                    r'\- writes the word to the database',
+                        r'Response example\:', code(
+                '{"word_id": 1000, "word": "<your_word>", "description": "<your_description>, "example_id": 100}'
+            ), '\n',
         '\n',
         bold('PUT'),
-            code(fr'http://{HOST}/api/example/<your_token>/<example_id>'), bold('->'),
-                code('{"example": "<your_example>"}'), r'\- updates the example data', '\n',
+            code(fr'http://{HOST}:{PORT}/api/example/<your_token>/<example_id>'), bold('->'),
+                code('{"example": "<your_example>"}'), r'\- updates the example data',
+                    r'Response example\:', code(
+            '{"ex_id": 100, "example": "<your_example>", "user_id": 2}'
+        ), '\n',
         bold('PUT'),
-            code(fr'http://{HOST}/api/word/<your_token>/<word_id>'), bold('->'),
-                code('{"word": "<your_word>", "description": "<your_description>}'), r'\- updates the word data', '\n',
+            code(fr'http://{HOST}:{PORT}/api/word/<your_token>/<word_id>'), bold('->'),
+                code('{"word": "<your_word>", "description": "<your_description>}'), r'\- updates the word data',
+                    r'Response example\:', code(
+            '{"word_id": 1000, "word": "<your_word>", "description": "<your_description>, "example_id": 100}'
+        ), '\n',
         '\n',
         bold('DELETE'),
-            code(fr'http://{HOST}/api/word/<your_token>/<word_id>'),
-                r'\- removes the word and if the example is left empty it too', '\n',
+            code(fr'http://{HOST}:{PORT}/api/word/<your_token>/<word_id>'),
+                r'\- removes the word and if the example is left empty it too',
+                    r'Response example\:', code(
+            '{"success": "Your data has been successfully deleted"}'
+        ), '\n',
         bold('DELETE'),
-            code(fr'http://{HOST}/api/example/<your_token>/<example_id>'),
-                r'\- removes the example and all its words', '\n',
+            code(fr'http://{HOST}:{PORT}/api/example/<your_token>/<example_id>'),
+                r'\- removes the example and all its words',
+                    r'Response example\:', code(
+            '{"success": "Your data has been successfully deleted"}'
+        ), '\n',
         '\n')
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
 
