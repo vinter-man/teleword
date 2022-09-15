@@ -6,7 +6,7 @@ import os
 
 from flask import Flask
 from flask import request as frequest
-from flask_restful import Api, Resource, reqparse
+from flask_restful import Api, Resource
 
 from app import db_worker
 
@@ -515,5 +515,3 @@ if __name__ == '__main__':
             second = 2.5
             logger.error(f'FlaskError. Restart after {second} (sec.) \n\n{e}\n\n')
             time.sleep(second)
-
-

@@ -1,25 +1,12 @@
-"""
-REMOVE | UPDATE
-1 move >>> change | delete
-2 what >>> word | descr | ex |
-3 for what >>> new
-"""
-
-import asyncio
-import copy
 import logging
 import sys
-import time
-import collections
-import random
 
-import requests
-from aiogram import Bot, Dispatcher, types
+from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.utils.markdown import text, bold, italic, code, pre
+from aiogram.utils.markdown import text, bold, italic
 from aiogram.utils.emoji import emojize
-from aiogram.types import ParseMode, InputMediaPhoto, InputMediaVideo, ChatActions
+from aiogram.types import ParseMode, ChatActions
 from aiogram.dispatcher.filters import Text
 
 from .. import db_worker
@@ -492,11 +479,3 @@ def register_updating_handlers(dp: Dispatcher):
         Text(equals='call_change'),
         state=UpdateData.waiting_for_next_step
     )
-
-
-
-
-
-
-
-

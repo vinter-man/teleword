@@ -1,22 +1,15 @@
 import datetime
-import sys
-from aiogram import Dispatcher, types
-from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import Text, IDFilter
-from aiogram.types import ParseMode
-from aiogram.utils.markdown import text, bold, italic, code, pre
-from aiogram import Bot, Dispatcher, executor, types
-import asyncio
-from aiogram import Dispatcher, types
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.types.message import ContentType
-from aiogram.utils.emoji import emojize
-from aiogram.utils.markdown import text, bold, italic, code, pre
-from aiogram.types import ParseMode, InputMediaPhoto, InputMediaVideo, ChatActions
-from aiogram.types import BotCommand
-from aiogram.utils.helper import Helper, HelperMode, ListItem
 import logging
-from .. import db_worker    # if . only in current package
+import sys
+
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import IDFilter
+from aiogram import Dispatcher, types
+from aiogram.utils.emoji import emojize
+from aiogram.utils.markdown import text, bold, italic
+from aiogram.types import ParseMode, ChatActions
+
+from .. import db_worker
 
 
 ########################################################################################################################

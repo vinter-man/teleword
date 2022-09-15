@@ -1,25 +1,16 @@
-import asyncio
-import copy
 import logging
 import os
 import sys
-import time
-import collections
-import random
 import datetime
 import matplotlib.pyplot as plt
 
-import requests
-from aiogram import Bot, Dispatcher, types
+from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.utils.markdown import text, bold, italic, code, pre
+from aiogram.utils.markdown import text, bold
 from aiogram.utils.emoji import emojize
-from aiogram.types import ParseMode, InputMediaPhoto, InputMediaVideo, ChatActions
-from aiogram.dispatcher.filters import Text
+from aiogram.types import ParseMode, ChatActions
 
 from config.config import BACKUP_GRAPH
-from config.config import APP_KEY_OXF, APP_ID_OXF, URL_OXF
 
 from .. import db_worker
 

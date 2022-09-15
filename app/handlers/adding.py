@@ -1,17 +1,14 @@
-import asyncio
 import logging
 import sys
-import time
 
-import requests
-from aiogram import Bot, Dispatcher, types
+from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.utils.markdown import text, bold, italic, code, pre
+from aiogram.utils.markdown import text, bold, italic
 from aiogram.utils.emoji import emojize
-from aiogram.types import ParseMode, InputMediaPhoto, InputMediaVideo, ChatActions
+from aiogram.types import ParseMode, ChatActions
 from aiogram.dispatcher.filters import Text
-from config.config import APP_KEY_OXF, APP_ID_OXF, URL_OXF
+from config.config import URL_OXF
 
 from .. import db_worker
 
@@ -188,7 +185,7 @@ async def ms_get_word_set_description_input(message: types.Message, state: FSMCo
     await AddingData.waiting_for_description.set()
 
 
-async def cb_get_description_back_to_word(call: types.CallbackQuery, state: FSMContext):
+async def cb_get_description_back_to_word(call: types.CallbackQuery):
     """
     3 action
         The user changed his mind about entering a description

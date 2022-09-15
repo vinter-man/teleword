@@ -1,20 +1,14 @@
-import asyncio
-import copy
 import logging
 import sys
-import time
-import collections
 import random
 
-import requests
-from aiogram import Bot, Dispatcher, types
+from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.utils.markdown import text, bold, italic, code, pre
+from aiogram.utils.markdown import text, bold, italic
 from aiogram.utils.emoji import emojize
-from aiogram.types import ParseMode, InputMediaPhoto, InputMediaVideo, ChatActions
+from aiogram.types import ParseMode, ChatActions
 from aiogram.dispatcher.filters import Text
-from config.config import APP_KEY_OXF, APP_ID_OXF, URL_OXF
 
 from .. import db_worker
 from ..db_worker import MinLenError

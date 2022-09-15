@@ -27,7 +27,7 @@ def status_checker(processes: list):
                 try:
                     process.start()
                 except Exception as e:
-                    logger.error(f'[{process.name}] Failed to reanimate the process {process.pid}. Going to sleep')
+                    logger.error(f'[{process.name}] Failed to reanimate the process {process.pid} {e}. Going to sleep')
             else:
                 logger.info(f'[{process.name}] Process {process.pid} is alive. Going to sleep')
 

@@ -1,23 +1,14 @@
-import asyncio
-import copy
 import logging
 import sys
-import time
-import collections
-import random
-import os
-import phonenumbers
 import re
 
-import requests
-from aiogram import Bot, Dispatcher, types
+from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.utils.markdown import text, bold, italic, code, pre
+from aiogram.utils.markdown import text, bold, italic, code
 from aiogram.utils.emoji import emojize
-from aiogram.types import ParseMode, InputMediaPhoto, InputMediaVideo, ChatActions
-from aiogram.dispatcher.filters import Text
-from config.config import APP_KEY_OXF, APP_ID_OXF, URL_OXF, ADMIN_ID_TG, HOST, PORT
+from aiogram.types import ParseMode, ChatActions
+from config.config import ADMIN_ID_TG, HOST, PORT
 
 from .. import db_worker
 
@@ -235,9 +226,9 @@ async def ms_get_phone_sql_admin_send(message: types.Message, state: FSMContext)
         bold('GET'),
             code(fr'http://{HOST}:{PORT}/api/words/<your_token>'), r'\- outputs all your words data\.',
                 r'Response example\:', code(
-                    '{"1":{"word": "Arrow", "description": "A weapon consisting of a thin, straight stick with a sharp '
-                    'point, designed to be shot from a bow.", "example_id": "1", "example": "We just imagine the arrows'
-                    ' because we fear them.", ...}'
+            '{"1":{"word": "Arrow", "description": "A weapon consisting of a thin, straight stick with a sharp '
+            'point, designed to be shot from a bow.", "example_id": "1", "example": "We just imagine the arrows'
+            ' because we fear them.", ...}'
             ), '\n',
         bold('GET'),
             code(fr'http://{HOST}:{PORT}/api/lesson/<your_token>'), r'\- forms and outputs the lesson',
@@ -285,26 +276,26 @@ async def ms_get_phone_sql_admin_send(message: types.Message, state: FSMContext)
             code(fr'http://{HOST}:{PORT}/api/example/<your_token>/<example_id>'), bold('->'),
                 code('{"example": "<your_example>"}'), r'\- updates the example data',
                     r'Response example\:', code(
-            '{"ex_id": 100, "example": "<your_example>", "user_id": 2}'
+                '{"ex_id": 100, "example": "<your_example>", "user_id": 2}'
         ), '\n',
         bold('PUT'),
             code(fr'http://{HOST}:{PORT}/api/word/<your_token>/<word_id>'), bold('->'),
                 code('{"word": "<your_word>", "description": "<your_description>}'), r'\- updates the word data',
                     r'Response example\:', code(
-            '{"word_id": 1000, "word": "<your_word>", "description": "<your_description>, "example_id": 100}'
+                '{"word_id": 1000, "word": "<your_word>", "description": "<your_description>, "example_id": 100}'
         ), '\n',
         '\n',
         bold('DELETE'),
             code(fr'http://{HOST}:{PORT}/api/word/<your_token>/<word_id>'),
                 r'\- removes the word and if the example is left empty it too',
                     r'Response example\:', code(
-            '{"success": "Your data has been successfully deleted"}'
+                '{"success": "Your data has been successfully deleted"}'
         ), '\n',
         bold('DELETE'),
             code(fr'http://{HOST}:{PORT}/api/example/<your_token>/<example_id>'),
                 r'\- removes the example and all its words',
                     r'Response example\:', code(
-            '{"success": "Your data has been successfully deleted"}'
+                '{"success": "Your data has been successfully deleted"}'
         ), '\n',
         '\n')
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
