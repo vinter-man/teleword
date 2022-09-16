@@ -19,6 +19,10 @@ logging.basicConfig(
 
 ########################################################################################################################
 def status_checker(processes: list):
+    """
+    Resurrects all processes from the processes list
+    :param processes: List of multiprocessing.Process processes
+    """
     while True:
 
         for process in processes:
@@ -61,7 +65,7 @@ bot_process = multiprocessing.Process(
 
 
 ########################################################################################################################
-if __name__ == '__main__':
+if __name__ == '__main__':     # Runs an entire two-part application by two different processes
     logger.info("Starting teleword")
     api_process.start()
     bot_process.start()

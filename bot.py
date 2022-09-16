@@ -24,6 +24,9 @@ logger = logging.getLogger(__name__)
 
 ########################################################################################################################
 async def set_commands(bot: Bot):
+    """
+    Sets valid bot hint commands
+    """
     commands = [
         BotCommand(command="/start", description="Greetings"),
         BotCommand(command="/help", description="View commands"),
@@ -33,6 +36,9 @@ async def set_commands(bot: Bot):
 
 
 async def main():
+    """
+    Assembly and launch of all functions of the part of the telegram bot
+    """
     # Setting up logging to stdout
     logging.basicConfig(
         level=logging.INFO,
@@ -67,7 +73,7 @@ async def main():
 
 
 ########################################################################################################################
-if __name__ == '__main__':
+if __name__ == '__main__':     # You can run separately only the telegram part from this module
     while True:
         try:
             asyncio.run(main())

@@ -8,9 +8,8 @@ from flask import Flask
 from flask import request as frequest
 from flask_restful import Api, Resource
 
-from app import db_worker
-
 from config.config import HOST, PORT
+from app import db_worker
 
 
 ########################################################################################################################
@@ -37,9 +36,15 @@ class AccessError(TypeError):
 
 ########################################################################################################################
 class Words(Resource):     # Resource - restfull king
+    """
+    Words database query handler class
+    """
 
     def get(self, token):
-
+        """
+        Outputs all user words data
+        :param token: string user token from db table apikeys
+        """
         try:
             sql_user = db_worker.get_user_by_api_key(token=token)
         except Exception as e:
@@ -76,9 +81,15 @@ class Words(Resource):     # Resource - restfull king
 
 
 class Lesson(Resource):
+    """
+    Lesson query handler class
+    """
 
     def get(self, token):
-
+        """
+        Forms and outputs the jsonyfy lesson
+        :param token: string user token from db table apikeys
+        """
         try:
             sql_user = db_worker.get_user_by_api_key(token=token)
         except Exception as e:
@@ -102,9 +113,16 @@ class Lesson(Resource):
 
 
 class Example(Resource):
+    """
+    Example database query handler class
+    """
 
     def get(self, token, example_id):
-
+        """
+        Returns example json data
+        :param token: string user token from db table apikeys
+        :param example_id: integer example id from db examples
+        """
         try:
             sql_user = db_worker.get_user_by_api_key(token=token)
         except Exception as e:
@@ -140,7 +158,11 @@ class Example(Resource):
             return returned_data, 200
 
     def post(self, token, example_id):
-
+        """
+        Posts example in examples db by json user data
+        :param token: string user token from db table apikeys
+        :body form-data: {'example': '<your_example>'}
+        """
         try:
             sql_user = db_worker.get_user_by_api_key(token=token)
         except Exception as e:
@@ -181,7 +203,11 @@ class Example(Resource):
             }, 200
 
     def put(self, token, example_id):
-
+        """
+        Puts example in examples db by json user data
+        :param token: string user token from db table apikeys
+        :form-data: {'example': '<your_example>'}
+        """
         try:
             sql_user = db_worker.get_user_by_api_key(token=token)
         except Exception as e:
@@ -233,7 +259,11 @@ class Example(Resource):
             return returned_data, 200
 
     def delete(self, token, example_id):
-
+        """
+        Deletes example in examples db by int example id
+        :param token: string user token from db table apikeys
+        :form-data: {'example': '<your_example>'}
+        """
         try:
             sql_user = db_worker.get_user_by_api_key(token=token)
         except Exception as e:
@@ -278,9 +308,16 @@ class Example(Resource):
 
 
 class Word(Resource):
+    """
+    Word database query handler class
+    """
 
     def get(self, token, word_id):
-
+        """
+        Returns word json data
+        :param token: string user token from db table apikeys
+        :param word_id: integer word id from db words
+        """
         try:
             sql_user = db_worker.get_user_by_api_key(token=token)
         except Exception as e:
@@ -318,7 +355,10 @@ class Word(Resource):
             return returned_data, 200
 
     def post(self, token, word_id):
-
+        """
+        Posts word from json data
+        :param token: string user token from db table apikeys
+        """
         try:
             sql_user = db_worker.get_user_by_api_key(token=token)
         except Exception as e:
@@ -375,7 +415,11 @@ class Word(Resource):
                    }, 200
 
     def put(self, token, word_id):
-
+        """
+        Puts word from json data
+        :param token: string user token from db table apikeys
+        :param word_id: integer word id from db words
+        """
         try:
             sql_user = db_worker.get_user_by_api_key(token=token)
         except Exception as e:
@@ -439,7 +483,11 @@ class Word(Resource):
             return returned_data, 200
 
     def delete(self, token, word_id):
-
+        """
+        Deletes word by word_id
+        :param token: string user token from db table apikeys
+        :param word_id: integer word id from db words
+        """
         try:
             sql_user = db_worker.get_user_by_api_key(token=token)
         except Exception as e:
@@ -486,6 +534,9 @@ class Word(Resource):
 
 ########################################################################################################################
 def main():
+    """
+    Assembly and launch of all functions of the part of the flask api
+    """
     # Create an api object
     app = Flask(__name__)
     api = Api(app)
@@ -506,7 +557,7 @@ def main():
 
 
 ########################################################################################################################
-if __name__ == '__main__':
+if __name__ == '__main__':    # You can run separately only the api part from this module
     logger.info("Starting api")
     while True:
         try:
