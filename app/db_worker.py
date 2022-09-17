@@ -41,6 +41,9 @@ Base = declarative_base()    # this guy will set the trend :)
 ########################################################################################################################
 # python classes
 class Users(Base):
+    """
+    Table for storing data of teleword users
+    """
     __tablename__ = 'users'
 
     user_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True, nullable=False)
@@ -61,6 +64,9 @@ class Users(Base):
 
 
 class UsersExamples(Base):
+    """
+    Table for storing data of user examples
+    """
     __tablename__ = 'examples'
 
     ex_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True, nullable=False)
@@ -71,6 +77,9 @@ class UsersExamples(Base):
 
 
 class UsersExamplesWords(Base):
+    """
+    Table for storing data of example words
+    """
     __tablename__ = 'words'
     # word_id - sqlalchemy.Integer -> max 350000 users with 6000 words
     word_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True, nullable=False)
@@ -82,6 +91,9 @@ class UsersExamplesWords(Base):
 
 
 class UsersStatistics(Base):
+    """
+    Table for storing data of user statistic
+    """
     __tablename__ = 'statistics'
 
     day_id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
@@ -93,6 +105,9 @@ class UsersStatistics(Base):
 
 
 class UsersApiKeys(Base):
+    """
+    Table for storing data of user api-keys
+    """
     __tablename__ = 'apikeys'
 
     key_id = sqlalchemy.Column(sqlalchemy.Integer, autoincrement=True, primary_key=True)
@@ -115,7 +130,10 @@ session = DbSession()
 ########################################################################################################################
 # common.py
 def is_user(telegram_id: str) -> bool:
-
+    """
+    Returns the result of checking if the user exists in the database by telegram_id
+    :param telegram_id: string representation of telegram user id
+    """
     result = session.query(Users).filter(Users.tg_id == telegram_id).all()
     if not result:
         return False
@@ -125,7 +143,20 @@ def is_user(telegram_id: str) -> bool:
 def add_user(tg_id: str, nickname: str, lang_code: str, shock_mode: int,
              points: int, is_blacklisted: bool, is_bot: bool, creation_time: str,
              last_use_time: str, current_use_time: str):
+    """
+    Adds a new user to the database
 
+    :param tg_id: string representation of telegram user id
+    :param nickname: string representation of telegram user username
+    :param lang_code:  string representation of telegram user language code
+    :param shock_mode: integer shock mode start value
+    :param points: integer points start value
+    :param is_blacklisted: bool black list status
+    :param is_bot: bool is user a bot status
+    :param creation_time: string representation of creation time data
+    :param last_use_time: string representation of last time use data
+    :param current_use_time: string representation of current use time data
+    """
     session.add(Users(
         tg_id=tg_id, nickname=nickname, lang_code=lang_code,
         shock_mode=shock_mode, points=points, is_blacklisted=is_blacklisted,
@@ -136,6 +167,11 @@ def add_user(tg_id: str, nickname: str, lang_code: str, shock_mode: int,
 
 
 def change_user_last_using(user_tg_id: str, flag: str = 'change'):
+    """
+    Checks / Increments / Resets the last time the user used the application
+    :param user_tg_id: string representation of telegram user id
+    :param flag: string 'change' / 'check'
+    """
 
     user = session.query(Users).filter_by(tg_id=user_tg_id).one()
     user.current_use_time = str(datetime.date.today())
@@ -159,10 +195,18 @@ def change_user_last_using(user_tg_id: str, flag: str = 'change'):
 
 
 def users_bl_list() -> list:
+    """
+    :return: list of blacklisted users
+    """
     return [i for i in session.query(Users).filter_by(is_blacklisted='True').all()]
 
 
 def change_user_bl_status(user_tg_id: str, change_for: bool):
+    """
+    Change user black list status
+    :param user_tg_id: string representation of telegram user id
+    :param change_for: new bool value
+    """
 
     user = session.query(Users).filter_by(tg_id=user_tg_id).one()
 
@@ -179,7 +223,9 @@ def change_user_bl_status(user_tg_id: str, change_for: bool):
 ########################################################################################################################
 # adding.py
 def add_example(example_text: str, user_tg_id: str) -> UsersExamples:
-    """Adding new example to 'examples' table, return UsersExamples obj"""
+    """
+    Adding new example to 'examples' table, return UsersExamples obj
+    """
 
     user = get_user(tg_id=user_tg_id)
     user_id = user.user_id
@@ -203,7 +249,9 @@ def add_example(example_text: str, user_tg_id: str) -> UsersExamples:
 
 
 def add_word(word: str, description: str, category: str, rating: int, example: UsersExamples) -> UsersExamplesWords:
-    """Adding new word to 'words' table"""
+    """
+    Adding new word to 'words' table
+    """
 
     word_in = session.query(UsersExamplesWords).filter(sqlalchemy.and_(
         UsersExamplesWords.word == word,
@@ -231,14 +279,27 @@ def add_word(word: str, description: str, category: str, rating: int, example: U
 ########################################################################################################################
 # lessons.py
 def get_user(tg_id: str) -> Users | None:
+    """
+    :param tg_id: string representation of telegram user id
+    :return: return user Users object
+    """
     return session.query(Users).filter_by(tg_id=tg_id).first()
 
 
 def get_word(word_id: int) -> UsersExamplesWords | None:
+    """
+    :param word_id: integer representation of word id
+    :return: return word UsersExamplesWords object
+    """
     return session.query(UsersExamplesWords).filter_by(word_id=word_id).first()
 
 
 def change_rating(word_id: int, new_rating: int):
+    """
+    Changes the rating of a word
+    :param word_id: integer representation of word id
+    :param new_rating: integer representation of new rating
+    """
     word = get_word(word_id=word_id)
 
     if not word:
@@ -253,6 +314,13 @@ def change_rating(word_id: int, new_rating: int):
 
 
 def add_or_change_day_stat(tg_id: str, first_try: int, mistakes: int, points=15):
+    """
+    Makes / changes the daily log in the user statistics table
+    :param tg_id: string representation of telegram user id
+    :param first_try: integer count of first attempts success
+    :param mistakes: integer count of mistakes
+    :param points: integer count of points
+    """
     today = str(datetime.date.today())
     user = get_user(tg_id=tg_id)
     user_id = user.user_id
@@ -286,6 +354,11 @@ def add_or_change_day_stat(tg_id: str, first_try: int, mistakes: int, points=15)
 
 
 def get_words_data(user_tg_id: str) -> list:
+    """
+    :param user_tg_id: string representation of telegram user id
+    :return: the data of the user's words by list with json-words with keys:
+     'tg_id': 'word', 'description', 'example', 'category', 'rating', 'word_id', 'is_main'
+    """
     sql_query = engine.execute(
         " SELECT "
         "examples.user_id, words.word, words.description, examples.example, words.category, words.rating, words.word_id"
@@ -411,6 +484,10 @@ def get_lesson_data(tg_id: str) -> list:
 ########################################################################################################################
 # statistic.py
 def word_count(user_tg_id: str) -> int:
+    """
+    :param user_tg_id: string representation of telegram user id
+    :return: integer value user's word count
+    """
     return (session.query(Users, sqlalchemy.func.count(UsersExamples.ex_id))
                 .outerjoin(UsersExamples)
                 .group_by(Users)
@@ -421,12 +498,21 @@ def word_count(user_tg_id: str) -> int:
 
 
 def get_user_stat(user_tg_id: str, limit: int = 7) -> list:
+    """
+    :param user_tg_id: string representation of telegram user id
+    :param limit: integer representation of maximum count of statistic logs
+    :return: list of UsersStatistics objects
+    """
     return session.query(UsersStatistics).filter_by(user_id=get_user(user_tg_id).user_id).order_by(
                                                                             UsersStatistics.day_id.desc()).limit(limit)
 
 
 def build_total_mistakes_firsttry_data_for_graph(user_sql_logs: list, future_length: int = 7) -> dict:
-
+    """
+    :param user_sql_logs: list of UsersStatistics objects
+    :param future_length: length of data to graph building
+    :return: dict of 3 lists: 'total', 'mistakes', 'first_try'
+    """
     result_dict = {
         "total": [0] * future_length,
         "mistakes": [0] * future_length,
@@ -453,7 +539,15 @@ def build_total_mistakes_firsttry_data_for_graph(user_sql_logs: list, future_len
 # checking.py
 def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
                                 sql_filter_key: str, sql_sort_key: str) -> str:
-
+    """
+    Creates a file in the specified format with user data
+    :param user_tg_id: string representation of telegram user id
+    :param file_path: string place where file will be safe
+    :param file_type: 'xlsx' / 'json' / 'xml' / 'csv'
+    :param sql_filter_key: 'most important words' / 'default'
+    :param sql_sort_key: 'by importance' / 'in alphabetical order' / 'default'
+    :return: path with name of created file
+    """
     # sql_filter_key:
     if sql_filter_key == 'most important words':
         sql_main = " SELECT " \
@@ -604,6 +698,12 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
 ########################################################################################################################
 # updating.py
 def get_user_example(user: Users, example_id: int = None, example: str = None) -> UsersExamples | None:
+    """
+    :param user: user Users object
+    :param example_id: integer example id
+    :param example: string user example
+    :return: first example user by the available parameters by UsersExamles object
+    """
     user_examples_id = list(map(lambda ex: ex.ex_id, user.exxs))
     if example:
         return session.query(UsersExamples).filter(sqlalchemy.and_(
@@ -614,11 +714,22 @@ def get_user_example(user: Users, example_id: int = None, example: str = None) -
 
 
 def get_example(example_id: int) -> UsersExamples | None:
+    """
+    :param example_id: integer example id
+    :return: first example by the available parameters by UsersExamles object
+    """
     return session.query(UsersExamples).filter_by(ex_id=example_id).first()
 
 
 def get_user_word(user: Users, word_id: int = None,
                   word: str = None, description: str = None) -> UsersExamplesWords | None:
+    """
+    :param user: user Users object
+    :param word_id: integer word id
+    :param word: string user word
+    :param description: string user description
+    :return: first user word by the available parameters in UsersExamles object form
+    """
     user_examples_id = list(map(lambda example: example.ex_id, user.exxs))
     if word:
         return session.query(UsersExamplesWords).filter(sqlalchemy.and_(
@@ -632,6 +743,12 @@ def get_user_word(user: Users, word_id: int = None,
 
 
 def get_word_category(word: str, default='-', url=URL_OXF) -> str:
+    """
+    :param word: string word
+    :param default: return it if no find result
+    :param url: api oxford url
+    :return: string word category by the available parameters
+    """
     url += word.lower()
     headers = {
         'app_id': APP_ID_OXF,
@@ -654,6 +771,12 @@ def get_word_category(word: str, default='-', url=URL_OXF) -> str:
 
 
 def update_data(data_type: str, data_id: int, new_data: str):
+    """
+    Update data to new values
+    :param data_type: 'word' / 'description' / 'example'
+    :param data_id: integer id of data
+    :param new_data: string new data
+    """
     if data_type == 'word':
         word = get_word(word_id=data_id)
         word.word = new_data
@@ -673,6 +796,11 @@ def update_data(data_type: str, data_id: int, new_data: str):
 
 
 def delete_data(data_type: str, data_id: int):
+    """
+    Delete data from id
+    :param data_type: 'word' / 'description' / 'example'
+    :param data_id: integer data id
+    """
     if data_type == 'word':
         word = get_word(word_id=data_id)
         word_example = get_example(example_id=word.example_id)
@@ -699,6 +827,10 @@ def delete_data(data_type: str, data_id: int):
 ########################################################################################################################
 # api.py
 def generate_api_keys(user: Users):
+    """
+    Create new api-key to user
+    :param user: user Users object
+    """
     while True:
         new_key = secrets.token_urlsafe(64)
         key = session.query(UsersApiKeys).filter(sqlalchemy.and_(
@@ -714,6 +846,10 @@ def generate_api_keys(user: Users):
 
 
 def is_api_keys(user: Users) -> bool:
+    """
+    :param user: user Users object
+    :return: boolean result of checking if there is such a key in the table
+    """
     api_key = session.query(UsersApiKeys).filter(sqlalchemy.and_(
         UsersApiKeys.user_id == user.user_id
     )).first()
@@ -724,6 +860,10 @@ def is_api_keys(user: Users) -> bool:
 
 
 def get_user_api_key(user: Users) -> str:
+    """
+    :param user: user Users object
+    :return: string user api key
+    """
     api_key: UsersApiKeys = session.query(UsersApiKeys).filter(sqlalchemy.and_(
         UsersApiKeys.user_id == user.user_id
     )).first()
@@ -731,6 +871,10 @@ def get_user_api_key(user: Users) -> str:
 
 
 def get_user_by_api_key(token: str) -> Users:
+    """
+    :param token: string user api key
+    :return: user Users object
+    """
     api_obj: UsersApiKeys = session.query(UsersApiKeys).filter(sqlalchemy.and_(
         UsersApiKeys.key == token
     )).first()
@@ -743,6 +887,9 @@ def get_user_by_api_key(token: str) -> Users:
 ########################################################################################################################
 # teleword.py
 def is_connection_alive() -> bool:
+    """
+    :return: boolean result of checking if connection is alive
+    """
     try:
         get_user(ADMIN_ID_TG)
     except mysql.connector.errors.OperationalError as e:

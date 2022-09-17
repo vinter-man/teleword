@@ -1,0 +1,13 @@
+aiogram==2.19
+matplotlib==3.5.1
+openpyxl==3.0.9
+SQLAlchemy==1.4.35
+requests==2.27.1
+mysql-connector-python==8.0.29
+pip==22.1.2
+wheel==0.36.2
+cryptography==36.0.2
+lxml==4.8.0
+setuptools==57.0.0
+future==0.18.2
+Flask==2.2.2
