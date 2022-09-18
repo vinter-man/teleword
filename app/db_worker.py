@@ -10,6 +10,7 @@ import sqlalchemy
 import secrets
 import requests
 import copy
+import os
 
 import mysql.connector
 from xml.etree import ElementTree
@@ -575,7 +576,10 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
         sql_query = engine.execute(sql_main + ' ORDER BY words.word_id ASC')
 
     # file_type:
-    file_name = str(file_path + '/words' + user_tg_id + '.' + file_type)
+    file_path += '/'
+    if not os.path.isdir(file_path):
+        os.mkdir(file_path)
+    file_name = str(file_path + 'words' + user_tg_id + '.' + file_type)
     file = open(file_name, 'w', encoding='utf-8')
     # xlsx
     if file_name.endswith('xlsx'):
