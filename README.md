@@ -39,4 +39,3 @@ Copy the public key and transfer it to github
  cat <KEY>.pub
 ```
 ![img.png](config/ssh_github_addind.png)
-
