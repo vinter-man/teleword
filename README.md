@@ -67,14 +67,14 @@ echo 'eval "$(pyenv init -)"' >> ~/.bashrc
 pyenv install 3.10.2
 pyenv rehash
 sudo apt install python3-venv
-sudo apt install screen
 ```
 
 ### Screen
 ```
+sudo apt install screen
 cd teleword
-screen -S teleword
 pyenv local 3.10.2
+screen -S teleword
 python -m venv <VENV NAME>
 source <VENV NAME>/bin/activate
 pip install -r requirements.txt
@@ -86,9 +86,50 @@ Changed the config and launched the desired part
 python teleword.py
 ```
 ### Systemd
+
+Install all the necessary packages in the environment and exit it
+```
+cd teleword
+pyenv local 3.10.2
+python -m venv <VENV NAME>
+source <VENV NAME>/bin/activate
+pip install -r requirements.txt
+```
+Create User:
+```
+cd $HOME
+sudo addgroup p2p 
+sudo adduser teleword --ingroup p2p --disabled-password --disabled-login --shell /usr/sbin/nologin --gecos ""
+```
+Let's create and run the service
 ```
 sudo nano /etc/systemd/system/teleword.service
 ```
+```
+[Unit]
+Description=Teleword
+After=network.target
+[Service]
+Type=simple
+User=teleword
+WorkingDirectory=/root/teleword/teleword/
 
+ExecStart= /root/teleword/teleword/teleword/venv/bin/python /root/teleword/teleword/teleword.py
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=4096
+[Install]
+WantedBy=multi-user.target
+```
+After logging in and saving the service file, let's start Teleword
+```
+sudo systemctl daemon-reload
+sudo systemctl enable teleword
+sudo systemctl restart teleword
+journalctl -u teleword -f
+```
+```
+sudo systemctl status teleword
+```
 ### Docker
 
