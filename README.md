@@ -67,40 +67,27 @@ echo 'eval "$(pyenv init -)"' >> ~/.bashrc
 pyenv install 3.10.2
 pyenv rehash
 sudo apt install python3-venv
-```
-
-### Screen
-```
-sudo apt install screen
 cd teleword
 pyenv local 3.10.2
-screen -S teleword
 python -m venv <VENV NAME>
 source <VENV NAME>/bin/activate
 pip install -r requirements.txt
 ```
 ![img.png](config/py-start.png)
+After a successful launch, you can exit
 
-Changed the config and launched the desired part
+Now you have to decide how it will be most convenient for you to launch your bot for continuous operation.
+
+### Screen
 ```
+sudo apt install screen
+screen -S teleword
 python teleword.py
 ```
+
+
 ### Systemd
 
-Install all the necessary packages in the environment and exit it
-```
-cd teleword
-pyenv local 3.10.2
-python -m venv <VENV NAME>
-source <VENV NAME>/bin/activate
-pip install -r requirements.txt
-```
-Create User:
-```
-cd $HOME
-sudo addgroup p2p 
-sudo adduser teleword --ingroup p2p --disabled-password --disabled-login --shell /usr/sbin/nologin --gecos ""
-```
 Let's create and run the service
 ```
 sudo nano /etc/systemd/system/teleword.service
@@ -109,27 +96,32 @@ sudo nano /etc/systemd/system/teleword.service
 [Unit]
 Description=Teleword
 After=network.target
+
 [Service]
 Type=simple
-User=teleword
+User=root
+ProtectHome=false
 WorkingDirectory=/root/teleword/teleword/
-
-ExecStart= /root/teleword/teleword/teleword/venv/bin/python /root/teleword/teleword/teleword.py
+ExecStart=/root/teleword/teleword/teleword/bin/python teleword.py
 Restart=on-failure
 RestartSec=10
 LimitNOFILE=4096
+
 [Install]
 WantedBy=multi-user.target
 ```
-After logging in and saving the service file, let's start Teleword
+After saving the service file, let's start Teleword
 ```
 sudo systemctl daemon-reload
 sudo systemctl enable teleword
 sudo systemctl restart teleword
-journalctl -u teleword -f
-```
-```
 sudo systemctl status teleword
 ```
+View logs in real time
+```
+journalctl -u teleword -f
+```
+
+
 ### Docker
 
