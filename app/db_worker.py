@@ -895,7 +895,7 @@ def is_connection_alive() -> bool:
     :return: boolean result of checking if connection is alive
     """
     try:
-        get_user(ADMIN_ID_TG)
+        session.query(Users).filter_by(tg_id=ADMIN_ID_TG).first()
     except mysql.connector.errors.OperationalError as e:
         logger.error(f'Connection is dead {e}')
         return False

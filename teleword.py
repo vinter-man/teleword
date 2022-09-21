@@ -4,6 +4,7 @@ import logging
 import subprocess
 import time
 
+from app import db_worker
 from config.config import PYTHON_PATH
 from app.db_worker import is_connection_alive
 
@@ -34,6 +35,13 @@ def status_checker(processes: list):
                     logger.error(f'[{process.name}] Failed to reanimate the process {process.pid} {e}. Going to sleep')
             else:
                 logger.info(f'[{process.name}] Process {process.pid} is alive. Going to sleep')
+
+        try:
+            db_worker.session.commit()
+        except:
+            db_worker.session.rollback()
+        finally:
+            db_worker.session.close()
 
         if not is_connection_alive():
             for process in processes:
