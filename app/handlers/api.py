@@ -1,6 +1,7 @@
 import logging
 import sys
 import re
+from sqlalchemy.exc import PendingRollbackError
 
 from aiogram import Dispatcher, types
 from aiogram.dispatcher import FSMContext
@@ -44,6 +45,21 @@ async def api_cmd(message: types.Message, state: FSMContext):
         is_api = db_worker.is_api_keys(
             user=sql_user
         )
+    except PendingRollbackError as e:
+        logger.error(f'[{username}]: Connection with db died {e}. Try to reconnect...')
+        db_worker.session.rollback()
+        try:
+            sql_user = db_worker.get_user(tg_id=message.from_user.id)
+            is_api = db_worker.is_api_keys(
+                user=sql_user
+            )
+        except Exception as e:
+            logger.error(f'[{username}]: Houston, we have got a problem {e}')
+            answer = text(
+                emojize(":man_mechanic:"), r"There was a big trouble when searching for you in the database\, "
+                                           r"please write to the administrator\.")
+            await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+            return
     except Exception as e:
         logger.error(f'[{username}]: Houston, we have got a problem {e}')
         answer = text(
@@ -192,6 +208,21 @@ async def ms_get_phone_sql_admin_send(message: types.Message, state: FSMContext)
         db_worker.generate_api_keys(
             user=sql_user
         )
+    except PendingRollbackError as e:
+        logger.error(f'[{username}]: Connection with db died {e}. Try to reconnect...')
+        db_worker.session.rollback()
+        try:
+            sql_user = db_worker.get_user(tg_id=message.from_user.id)
+            db_worker.generate_api_keys(
+                user=sql_user
+            )
+        except Exception as e:
+            logger.error(f'[{username}]: Houston, we have got a problem {e}')
+            answer = text(
+                emojize(":man_mechanic:"), r"There was a big trouble when searching for you in the database\, "
+                                           r"please write to the administrator\.")
+            await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+            return
     except Exception as e:
         logger.error(f'[{username}]: Houston, we have got a problem {e}')
         answer = text(
@@ -208,6 +239,24 @@ async def ms_get_phone_sql_admin_send(message: types.Message, state: FSMContext)
             r'Key to send\:', code(f' {db_worker.get_user_api_key(user=sql_user)}'), '\n',
         )
         await message.bot.send_message(ADMIN_ID_TG, answer, parse_mode=ParseMode.MARKDOWN_V2)
+    except PendingRollbackError as e:
+        try:
+            logger.error(f'[{username}]: Connection with db died {e}. Try to reconnect...')
+            db_worker.session.rollback()
+            answer = text(
+                bold('API private key request'), '\n',
+                r'Phone\:', code(f' {phone_number}'), '\n',
+                r'Purpose\:', italic(f' {purpose}'), '\n',
+                r'Key to send\:', code(f' {db_worker.get_user_api_key(user=sql_user)}'), '\n',
+            )
+            await message.bot.send_message(ADMIN_ID_TG, answer, parse_mode=ParseMode.MARKDOWN_V2)
+        except Exception as e:
+            logger.error(f'[{username}]: Houston, we have got a problem {e}')
+            answer = text(
+                emojize(":man_mechanic:"), r"There was a big trouble when searching for you in the database\, "
+                                           r"please write to the administrator\.")
+            await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+            return
     except Exception as e:
         logger.error(f'[{username}]: Houston, we have got a problem {e}')
         answer = text(

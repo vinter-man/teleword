@@ -38,8 +38,9 @@ def status_checker(processes: list):
 
         try:
             db_worker.session.commit()
-        except:
+        except Exception as e:
             db_worker.session.rollback()
+            logger.error(f'[{db_worker.session}] Sql error {e}')
         finally:
             db_worker.session.close()
 

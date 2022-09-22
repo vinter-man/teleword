@@ -122,6 +122,10 @@ View logs in real time
 journalctl -u teleword -f
 ```
 
-
 ### Docker
-
+Let's install the necessary
+```
+sudo apt install apt-transport-https
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo apt install docker
+```
