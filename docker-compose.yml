@@ -1,0 +1,15 @@
+version: '2.11'
+
+services:
+  bot:
+    build:
+      context: .
+    container_name: teleword
+    command:
+      - python teleword.py
+    ports:
+      - 2625:80
+    volumes:
+      - ./:/app
+    restart: on-failure
+    stop_signal: SIGINT
