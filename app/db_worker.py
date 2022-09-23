@@ -19,6 +19,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy.exc
+from sqlalchemy.exc import PendingRollbackError
 
 from config.config import MY_SQL, APP_KEY_OXF, APP_ID_OXF, URL_OXF, ADMIN_ID_TG
 
@@ -899,5 +900,16 @@ def is_connection_alive() -> bool:
     except mysql.connector.errors.OperationalError as e:
         logger.error(f'Connection is dead {e}')
         return False
-    finally:
-        return True
+    return True
+
+
+def pending_rollback(username: str):
+    """
+    Try to connect with db, if can`t - try to rollback
+    :param username: string user name for logs
+    """
+    try:
+        session.commit()
+    except PendingRollbackError as e:
+        logger.error(f'[{username}]: Connection with db died {e}. Try to reconnect...')
+        session.rollback()

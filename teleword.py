@@ -36,14 +36,6 @@ def status_checker(processes: list):
             else:
                 logger.info(f'[{process.name}] Process {process.pid} is alive. Going to sleep')
 
-        try:
-            db_worker.session.commit()
-        except Exception as e:
-            db_worker.session.rollback()
-            logger.error(f'[{db_worker.session}] Sql error {e}')
-        finally:
-            db_worker.session.close()
-
         if not is_connection_alive():
             for process in processes:
                 process.stop()

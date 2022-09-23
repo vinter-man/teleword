@@ -40,26 +40,13 @@ async def api_cmd(message: types.Message, state: FSMContext):
     logger.info(fr'[{username}]: Start /api command')
     await state.reset_state(with_data=False)
 
+    db_worker.pending_rollback(username=message.from_user.username)
+
     try:
         sql_user = db_worker.get_user(tg_id=message.from_user.id)
         is_api = db_worker.is_api_keys(
             user=sql_user
         )
-    except PendingRollbackError as e:
-        logger.error(f'[{username}]: Connection with db died {e}. Try to reconnect...')
-        db_worker.session.rollback()
-        try:
-            sql_user = db_worker.get_user(tg_id=message.from_user.id)
-            is_api = db_worker.is_api_keys(
-                user=sql_user
-            )
-        except Exception as e:
-            logger.error(f'[{username}]: Houston, we have got a problem {e}')
-            answer = text(
-                emojize(":man_mechanic:"), r"There was a big trouble when searching for you in the database\, "
-                                           r"please write to the administrator\.")
-            await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
-            return
     except Exception as e:
         logger.error(f'[{username}]: Houston, we have got a problem {e}')
         answer = text(
@@ -203,26 +190,13 @@ async def ms_get_phone_sql_admin_send(message: types.Message, state: FSMContext)
     phone_number = data.get('phone')
     purpose = data.get('purpose')
 
+    db_worker.pending_rollback(username=message.from_user.username)
+
     try:
         sql_user = db_worker.get_user(tg_id=message.from_user.id)
         db_worker.generate_api_keys(
             user=sql_user
         )
-    except PendingRollbackError as e:
-        logger.error(f'[{username}]: Connection with db died {e}. Try to reconnect...')
-        db_worker.session.rollback()
-        try:
-            sql_user = db_worker.get_user(tg_id=message.from_user.id)
-            db_worker.generate_api_keys(
-                user=sql_user
-            )
-        except Exception as e:
-            logger.error(f'[{username}]: Houston, we have got a problem {e}')
-            answer = text(
-                emojize(":man_mechanic:"), r"There was a big trouble when searching for you in the database\, "
-                                           r"please write to the administrator\.")
-            await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
-            return
     except Exception as e:
         logger.error(f'[{username}]: Houston, we have got a problem {e}')
         answer = text(
