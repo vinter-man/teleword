@@ -129,12 +129,13 @@ sudo apt install apt-transport-https
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 sudo apt install docker
 ```
-Docker compose
 ```
-DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
-mkdir -p $DOCKER_CONFIG/cli-plugins
-curl -SL https://github.com/docker/compose/releases/download/v2.11.0/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
-chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
-docker compose version
+cd teleword
+docker build -t teleword .
+docker run -d -p  26256:80  teleword
+docker ps
 ```
-> Docker Compose version v2.11.0
+View logs in real time
+```
+docker logs <teleword docker ps CONTAINER ID> -f --tail 10
+```
