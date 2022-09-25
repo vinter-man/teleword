@@ -132,10 +132,15 @@ sudo apt install docker
 ```
 cd teleword
 docker build -t teleword .
-docker run -d -p  26256:80  teleword
-docker ps
+```
+```
+docker run \
+  -d \
+  -p 26256:80 \
+  --name teleword \
+  teleword
 ```
 View logs in real time
 ```
-docker logs <teleword docker ps CONTAINER ID> -f --tail 10
+docker logs teleword -f --tail 100
 ```

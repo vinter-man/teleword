@@ -168,6 +168,8 @@ async def ms_get_file_type_send_data(message: types.Message, state: FSMContext):
     remove_keyboard = types.ReplyKeyboardRemove()
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
 
+    db_worker.pending_rollback(username=message.from_user.username)
+
     for file_type_answer in answers:
         await message.bot.send_chat_action(message.from_user.id, ChatActions.UPLOAD_DOCUMENT)
         if file_type_answer not in possible_answers:

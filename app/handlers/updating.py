@@ -163,6 +163,7 @@ async def ms_get_id_set_action(message: types.Message, state: FSMContext):
     user_data_type = data.get("user_data_type")
     user_data_action = data.get("user_data_action")
     logger.info(f'[{username}]: Catch id | data: "{user_text}"')
+    db_worker.pending_rollback(username=message.from_user.username)
 
     # example
     if user_data_type == 'example':
@@ -315,6 +316,7 @@ async def ms_get_new_data_set_finish(message: types.Message, state: FSMContext):
     data = await state.get_data()
     user_data_type = data.get("user_data_type")
     logger.info(f'[{username}]: New {user_data_type} data: "{user_text}"')
+    db_worker.pending_rollback(username=message.from_user.username)
 
     if user_data_type == 'example':
         user_data_id = data.get("user_example_id")
@@ -399,6 +401,7 @@ async def cb_get_delete_data_set_finish(call: types.CallbackQuery, state: FSMCon
     else:    # word | description
         user_data_id = data.get("user_word_id")
     logger.info(f'[{username}]: {user_data_type} to delete: "{user_data_id}"')
+    db_worker.pending_rollback(username=message.from_user.username)
 
     answer = text(
         rf'Please wait while we delete your {user_data_type} \- this may take some time\.\.\.', '\n')

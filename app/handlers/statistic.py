@@ -109,6 +109,8 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
     await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)
 
+    db_worker.pending_rollback(username=message.from_user.username)
+
     try:
         db_worker.change_user_last_using(
             user_tg_id=str(message.from_user.id),

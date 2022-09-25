@@ -48,6 +48,8 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
 
     await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)  # comfortable waiting
 
+    db_worker.pending_rollback(username=message.from_user.username)
+
     try:
         lesson_data = db_worker.get_lesson_data(str(message.chat.id))
     except MinLenError as e:
@@ -114,6 +116,7 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
     task_number = data['task_number']
     lesson_stats = data['lesson_stats']
     logger.info(f'{username} lesson {task_number}')
+    db_worker.pending_rollback(username=call.from_user.username)
 
     ###########################################
     # user reached the end and ended the lesson

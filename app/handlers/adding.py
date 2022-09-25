@@ -250,6 +250,9 @@ async def ms_get_description_write_data_to_sql(message: types.Message, state: FS
     example = data.get('current_example')
     word = data.get('current_word')
     description = data.get('current_description')
+
+    db_worker.pending_rollback(username=message.from_user.username)
+
     category = db_worker.get_word_category(
         word=word,
         default='-',

@@ -25,6 +25,8 @@ logging.basicConfig(
 async def start_cmd(message: types.Message, state: FSMContext):
     logger.info(f'|{message.from_user.username}| Use start command')
 
+    db_worker.pending_rollback(username=message.from_user.username)
+
     if not db_worker.is_user(str(message.from_user.id)):
         logger.info(f'|{message.from_user.username}| adding new user to "users" table...')
         await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)
@@ -113,6 +115,8 @@ async def admin_panel_cmd(message: types.Message, state: FSMContext):
 async def admin_show_bl_cmd(message: types.Message, state: FSMContext):
     logger.info(f'| {message.from_user.username} | Show black list')
     await state.reset_state(with_data=False)
+
+    db_worker.pending_rollback(username=message.from_user.username)
 
     black_list = db_worker.users_bl_list()
     if not black_list:
