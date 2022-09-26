@@ -9,7 +9,7 @@ sudo apt update && sudo apt upgrade -y
 ```
 Installing useful packages
 ```
-sudo apt install git openssh python3-venv
+sudo apt install git openssh
 ```
 Let's generate sssh keys using the s4lv [ed25519](https://ru.wikipedia.org/wiki/EdDSA) method
 ```
@@ -56,16 +56,25 @@ nano teleword/config/config.py
 ```
 > Do not forget to change the config file for yourself.
 
+## Systemd | Screen
 Let's move on to setting up a virtual environment
 ```
-apt-get install make libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev
-curl https://raw.github.com/yyuu/pyenv-installer/master/bin/pyenv-installer | bash
+sudo apt install -y make build-essential libssl-dev zlib1g-dev \
+> libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev\
+> libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl
+```
+```
+git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+```
+```
 echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
 echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-echo 'eval "$(pyenv init -)"' >> ~/.bashrc
-. ~/.bashrc
+echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n eval "$(pyenv init -)"\nfi' >> ~/.bashrc
+```
+```
 pyenv install 3.10.2
 pyenv rehash
+eval "$(pyenv init -)"
 sudo apt install python3-venv
 cd teleword
 pyenv local 3.10.2
@@ -101,8 +110,8 @@ After=network.target
 Type=simple
 User=root
 ProtectHome=false
-WorkingDirectory=/root/teleword/teleword/
-ExecStart=/root/teleword/teleword/teleword/bin/python teleword.py
+WorkingDirectory=/root/teleword/
+ExecStart=/root/teleword/<VENV NAME>/bin/python teleword.py
 Restart=on-failure
 RestartSec=10
 LimitNOFILE=4096
@@ -122,7 +131,7 @@ View logs in real time
 journalctl -u teleword -f
 ```
 
-### Docker
+## Docker
 Let's install the necessary
 ```
 sudo apt install apt-transport-https
@@ -143,4 +152,16 @@ docker run \
 View logs in real time
 ```
 docker logs teleword -f --tail 100
+```
+
+## Docker-compose
+Install [docker-compose](https://docs.docker.com/desktop/install/ubuntu/) 
+```
+cd teleword
+docker compose up -d --build
+```
+View logs in real time
+```
+cd teleword
+docker compose logs -f --tail 10
 ```

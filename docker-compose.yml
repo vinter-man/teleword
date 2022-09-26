@@ -1,15 +1,9 @@
-version: '2.11'
+version: '3'
 
 services:
-  bot:
-    build:
-      context: .
-    container_name: teleword
-    command:
-      - python teleword.py
+  teleword:
+    # where is the Dockerfile for teleword regarding yml file for building and start this container
+    build: .
     ports:
       - 2625:80
-    volumes:
-      - ./:/app
     restart: on-failure
-    stop_signal: SIGINT
