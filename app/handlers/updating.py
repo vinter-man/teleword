@@ -179,7 +179,7 @@ async def ms_get_id_set_action(message: types.Message, state: FSMContext):
             logger.error(f'[{username}]: Houston, we have got a unknown sql problem {e}')
             answer = text(
                 emojize(":oncoming_police_car:"), fr"There was a big trouble when searching your {user_data_type}\, "
-                                                  r"please write to the administrator\.")
+                                                  r"please try again and then write to the administrator\.")
             await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
             return
         if not example_obj:
@@ -249,7 +249,7 @@ async def ms_get_id_set_action(message: types.Message, state: FSMContext):
             logger.error(f'[{username}]: Houston, we have got a unknown sql problem {e}')
             answer = text(
                 emojize(":oncoming_police_car:"), fr"There was a big trouble when searching your {user_data_type}\, "
-                                                  r"please write to the administrator\.")
+                                                  r"please try again and then write to the administrator\.")
             await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
             return
         if not word_obj:
@@ -373,7 +373,7 @@ async def ms_get_new_data_set_finish(message: types.Message, state: FSMContext):
         logger.error(f'{username} Houston, we have got a unknown sql problem {e}')
         answer = text(
             emojize(":oncoming_police_car:"), r"There was a big trouble when edit your data\, "
-                                              r"please write to the administrator\.")
+                                              r"please try again and then write to the administrator\.")
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         return
 
@@ -430,7 +430,7 @@ async def cb_get_delete_data_set_finish(call: types.CallbackQuery, state: FSMCon
         logger.error(f'{username} Houston, we have got a unknown sql problem {e}')
         answer = text(
             emojize(":oncoming_police_car:"), r"There was a big trouble when deleting your data\, "
-                                              r"please write to the administrator\.")
+                                              r"please try again and then write to the administrator\.")
         await call.message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         return
 

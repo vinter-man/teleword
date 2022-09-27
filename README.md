@@ -72,7 +72,7 @@ echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
 echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n eval "$(pyenv init -)"\nfi' >> ~/.bashrc
 ```
 ```
-pyenv install 3.10.2
+pyenv in tall 3.10.2
 pyenv rehash
 eval "$(pyenv init -)"
 sudo apt install python3-venv

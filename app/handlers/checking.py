@@ -198,7 +198,7 @@ async def ms_get_file_type_send_data(message: types.Message, state: FSMContext):
                 logger.error(f'[{username}]: Houston, we have got a problem {e, file_type, filter_key, sort_key}')
                 answer = text(
                     emojize(":man_mechanic:"), r"There was a big trouble when compiling your document\, "
-                                                                        r"please write to the administrator\.")
+                                                            r"please try again and then write to the administrator\.")
                 await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
             else:
                 try:
@@ -213,7 +213,7 @@ async def ms_get_file_type_send_data(message: types.Message, state: FSMContext):
                     logger.error(f'[{username}]: Houston, we have got a problem {e, document}')
                     answer = text(
                         emojize(":man_mechanic:"), r"There was a big trouble when sending your document\, "
-                                                                       r"please write to the administrator\.")
+                                                            r"please try again and then write to the administrator\.")
                     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
                 finally:
                     os.remove(document)

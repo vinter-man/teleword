@@ -51,7 +51,7 @@ async def api_cmd(message: types.Message, state: FSMContext):
         logger.error(f'[{username}]: Houston, we have got a problem {e}')
         answer = text(
             emojize(":man_mechanic:"), r"There was a big trouble when searching for you in the database\, "
-                                       r"please write to the administrator\.")
+                                       r"please try again and then write to the administrator\.")
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         return
 
@@ -201,7 +201,7 @@ async def ms_get_phone_sql_admin_send(message: types.Message, state: FSMContext)
         logger.error(f'[{username}]: Houston, we have got a problem {e}')
         answer = text(
             emojize(":man_mechanic:"), r"There was a big trouble when searching for you in the database\, "
-                                       r"please write to the administrator\.")
+                                       r"please try again and then write to the administrator\.")
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         return
 
@@ -228,14 +228,14 @@ async def ms_get_phone_sql_admin_send(message: types.Message, state: FSMContext)
             logger.error(f'[{username}]: Houston, we have got a problem {e}')
             answer = text(
                 emojize(":man_mechanic:"), r"There was a big trouble when searching for you in the database\, "
-                                           r"please write to the administrator\.")
+                                           r"please try again and then write to the administrator\.")
             await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
             return
     except Exception as e:
         logger.error(f'[{username}]: Houston, we have got a problem {e}')
         answer = text(
             emojize(":man_mechanic:"), r"There was a big trouble when searching for you in the database\, "
-                                       r"please write to the administrator\.")
+                                       r"please try again and then write to the administrator\.")
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         return
 

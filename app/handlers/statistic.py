@@ -125,7 +125,7 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
         logger.error(f'{username} Houston, we have got a problem {e, message.from_user.id}')
         answer = text(
             emojize(":oncoming_police_car:"), r"There was a big trouble when compiling your test\, "
-                                              r"please write to the administrator\.")
+                                              r"please try again and then write to the administrator\.")
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         return
 
@@ -133,7 +133,7 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
         total_words_count = db_worker.word_count(user_tg_id=message.from_user.id)
     except Exception as e:
         logger.error(f'{username} Houston, we have got a problem {e, message.from_user.id}')
-        total_words_count = 'error, please write to the admin'
+        total_words_count = 'error, please try again and then write to the admin'
 
     answer = text(
         emojize(':stopwatch: Shock mode\n'),

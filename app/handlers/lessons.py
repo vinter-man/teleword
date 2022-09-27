@@ -63,7 +63,7 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
         logger.error(f'{username} Houston, we have got a problem {e}')
         answer = text(
                 emojize(":oncoming_police_car:"), r"There was a big trouble when compiling your test\, "
-                                                                             r"please write to the administrator\.")
+                                                              r"please try again and then write to the administrator\.")
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         return
 
