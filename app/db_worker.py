@@ -36,7 +36,7 @@ logging.basicConfig(
 ########################################################################################################################
 ########################################################################################################################
 # basic
-engine = sqlalchemy.create_engine(MY_SQL, echo=True)
+engine = sqlalchemy.create_engine(MY_SQL, pool_recycle=3600, echo=True)
 Base = declarative_base()    # this guy will set the trend :)
 
 

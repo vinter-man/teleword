@@ -116,7 +116,6 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
     task_number = data['task_number']
     lesson_stats = data['lesson_stats']
     logger.info(f'{username} lesson {task_number}')
-    db_worker.pending_rollback(username=call.from_user.username)
 
     ###########################################
     # user reached the end and ended the lesson
@@ -131,6 +130,8 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
 
         await call.message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
         await call.message.bot.send_chat_action(call.from_user.id, ChatActions.TYPING)
+
+        db_worker.pending_rollback(username=call.from_user.username)
 
         first_try = 0
         mistakes = 0
