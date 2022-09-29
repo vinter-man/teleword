@@ -5,6 +5,8 @@ import random
 import sys
 import json
 import csv
+import time
+
 import openpyxl
 import sqlalchemy
 import secrets
@@ -200,7 +202,7 @@ def users_bl_list() -> list:
     """
     :return: list of blacklisted users
     """
-    return [i for i in session.query(Users).filter_by(is_blacklisted='True').all()]
+    return [i for i in session.query(Users).filter_by(is_blacklisted=True).all()]
 
 
 def change_user_bl_status(user_tg_id: str, change_for: bool):
@@ -893,7 +895,7 @@ def get_user_by_api_key(token: str) -> Users:
 # teleword.py
 def is_connection_alive() -> bool:
     """
-    :return: boolean result of checking if connection is alive
+    :return: boolean result of checking if connection with sql is alive
     """
     try:
         session.query(Users).filter_by(tg_id=ADMIN_ID_TG).first()
@@ -908,8 +910,14 @@ def pending_rollback(username: str):
     Try to connect with db, if can`t - try to rollback
     :param username: string user name for logs
     """
-    try:
-        session.commit()
-    except PendingRollbackError as e:
-        logger.error(f'[{username}]: Connection with db died {e}. Try to reconnect...')
-        session.rollback()
+    start = time.perf_counter()
+    while True:
+        if time.perf_counter() - start > 4.5:
+            logger.critical(f'[{username}]: Connection with db died. Can`t reconnect')
+            break
+        try:
+            session.commit()
+            break
+        except PendingRollbackError as e:
+            logger.error(f'[{username}]: Connection with db died {e}. Try to reconnect...')
+            session.rollback()
