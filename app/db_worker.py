@@ -317,7 +317,7 @@ def change_rating(word_id: int, new_rating: int):
     logger.info(f'changed word rating {old_rating} >>> {new_rating}')
 
 
-def add_or_change_day_stat(tg_id: str, first_try: int, mistakes: int, points=15):
+def add_or_change_day_stat(tg_id: str, first_try: int, mistakes: int, points: int = 15):
     """
     Makes / changes the daily log in the user statistics table
     :param tg_id: string representation of telegram user id
@@ -808,13 +808,7 @@ def delete_data(data_type: str, data_id: int):
     :param data_type: 'word' / 'description' / 'example'
     :param data_id: integer data id
     """
-    if data_type == 'word':
-        word = get_word(word_id=data_id)
-        word_example = get_example(example_id=word.example_id)
-        session.delete(word)
-        if len(word_example.words) == 0:
-            session.delete(word_example)
-    elif data_type == 'description':
+    if data_type in ('word', 'description'):
         word = get_word(word_id=data_id)
         word_example = get_example(example_id=word.example_id)
         session.delete(word)
