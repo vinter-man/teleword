@@ -25,7 +25,7 @@ logging.basicConfig(
 
 
 ########################################################################################################################
-def build_graph(user_id, days, total, mistakes, first_try):
+def build_graph(user_id: str | int, days, total, mistakes, first_try, path: str) -> str:
     logger.info(f'{user_id} Start build graph with: \n\n{days}\n{total}\n{mistakes}\n{first_try}\n')
 
     picture = plt.figure(
@@ -83,8 +83,8 @@ def build_graph(user_id, days, total, mistakes, first_try):
         markersize=4,
         linewidth=1.5)
 
-    logger.info(f"{user_id} here f'temporary/statistic_{user_id}_{str(datetime.date.today())}.png'")
-    pic_name = f'temporary/statistic{user_id}.png'
+    logger.info(f"{user_id} here f'{path}statistic_{user_id}_{str(datetime.date.today())}.png'")
+    pic_name = path + f'statistic{user_id}.png'
     picture.savefig(pic_name)
     logger.info(f'{user_id} Graph successfully saved to {pic_name}')
     return pic_name
@@ -166,7 +166,8 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
             days=get_seven_day(),
             total=graph_data["total"],
             mistakes=graph_data["mistakes"],
-            first_try=graph_data["first_try"]
+            first_try=graph_data["first_try"],
+            path='temporary/'
         )
     try:
         await message.answer_photo(

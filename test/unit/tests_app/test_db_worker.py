@@ -1,4 +1,3 @@
-# All what we want for test file:
 import unittest
 import datetime
 import os
@@ -673,17 +672,6 @@ class DbWorkerTestCase(unittest.TestCase):
         expected = db_worker.get_user(tg_id=config.ADMIN_ID_TG)
         actual = db_worker.get_user_by_api_key(token=db_worker.get_user_api_key(user=expected))
         self.assertEqual(expected, actual)
-
-    # def test_first_last_midle_name(self):    # if name starts 'test_...' - autostart
-    #     """Are names form 'Wolfgang Amadeus Mozart' working well?"""
-    #     formated_name = get_formatted_name('wolfgang', 'mozart', 'amadeus')
-    #     self.assertEqual(formated_name, 'Wolfgang Amadeus Mozart')
-    #     # assersEqual(f, v) f==v
-    #     # assertNotEqual(f, v) f!=v
-    #     # assertTrue(x) x == True
-    #     # assertFalse(x) x == False
-    #     # assertIn(x, list) x in list == True
-    #     # assertNotIn(x, list) x not in list == True
 
 
 ########################################################################################################################
