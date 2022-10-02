@@ -49,9 +49,9 @@ async def main():
 
     # Declaration and initialization of bot and dispatcher objects
     bot = Bot(token=config.TOKEN_TG)
-    storage = RedisStorage2(host='redis-11777.c293.eu-central-1-1.ec2.cloud.redislabs.com',
-                            port=11777,
-                            password='RLSHxZNn3NKF50b56mT1fpq7QoKVwuyy'
+    storage = RedisStorage2(host=config.REDIS_HOST,
+                            port=config.REDIS_PORT,
+                            password=config.REDIS_PASSWORD
                             )
     dp = Dispatcher(bot, storage=storage)    # redis + mysql + search engine ElasticSearch
 

@@ -40,6 +40,7 @@ logging.basicConfig(
 # basic
 engine = sqlalchemy.create_engine(MY_SQL, pool_recycle=3600, echo=True)
 Base = declarative_base()    # this guy will set the trend :)
+# SET @@GLOBAL.wait_timeout=31536000
 
 
 ########################################################################################################################

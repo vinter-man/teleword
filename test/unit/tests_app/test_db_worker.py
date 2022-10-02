@@ -13,6 +13,81 @@ class DbWorkerTestCase(unittest.TestCase):
     Tests for 'db_worker.py'.
     """
 
+    def setUp(self) -> None:
+        """
+        Cleans up anything that might interfere with correct testing
+        """
+        self.admin = db_worker.get_user(tg_id=str(config.ADMIN_ID_TG))
+        self.path = '../../../temporary'
+        for i in pathlib.Path(self.path).rglob('*'):
+            os.remove(i)
+        db_worker.engine.execute(
+            """
+            DELETE FROM words 
+            WHERE word = 'testword'
+            AND description  = 'testdescription'
+            """)
+        db_worker.engine.execute(
+            """
+            DELETE FROM words 
+            WHERE word = 'testword2'
+            AND description  = 'testdescription2'
+            """)
+        db_worker.engine.execute(
+            """
+            DELETE FROM words 
+            WHERE word = 'testword3'
+            AND description  = 'testdescription3'
+            OR word = 'testword3_1'
+            AND description  = 'testdescription3'
+            """)
+        db_worker.engine.execute(
+            """
+            DELETE FROM words 
+            WHERE word = 'testword3'
+            AND description  = 'testdescription3'
+            OR word = 'testword3'
+            AND description  = 'testdescription3_1'
+            """)
+
+        db_worker.engine.execute(
+            """
+            DELETE FROM words 
+            WHERE word = 'testword4'
+            AND description  = 'testdescription4'
+            """)
+        db_worker.engine.execute(
+            """
+            DELETE FROM examples
+            WHERE example = 'testexample'
+            AND user_id  = {}
+            """.format(self.admin.user_id))
+        db_worker.engine.execute(
+            """
+            DELETE FROM users 
+            WHERE nickname = 'test'
+            AND lang_code = 'ru'
+            AND shock_mode = 0
+            AND points = 0
+            AND is_blacklisted = 0
+            AND is_bot = 0
+            """)
+        db_worker.engine.execute(
+            """
+            DELETE FROM users WHERE tg_id='TEST00001'
+            """)
+        db_worker.engine.execute(
+            """
+            DELETE FROM users WHERE tg_id='TEST00002'
+            """)
+        db_worker.pending_rollback(username='test')
+
+    def tearDown(self) -> None:
+        """
+        Cleans up anything that might interfere with correct future testing
+        """
+        self.setUp()
+
     def test_tables(self):
         """
         Checking if there are tables in the database after module import
@@ -95,10 +170,11 @@ class DbWorkerTestCase(unittest.TestCase):
         Test is the shock mode status increasing works correctly
         """
         today = str(datetime.date.today())
+        yesterday = str(datetime.date.today() - datetime.timedelta(days=1))
         db_worker.engine.execute(
             """
             DELETE FROM users WHERE tg_id='TEST00001'
-            """.format(today, today))
+            """)
         db_worker.add_user(
             tg_id='TEST00001',
             nickname='test',
@@ -108,8 +184,8 @@ class DbWorkerTestCase(unittest.TestCase):
             is_blacklisted=False,
             is_bot=False,
             creation_time=today,
-            last_use_time='2022-09-29',
-            current_use_time='2022-09-30'
+            last_use_time=yesterday,
+            current_use_time=today
         )
         db_worker.change_user_last_using(user_tg_id='TEST00001')
         actual = db_worker.get_user(tg_id='TEST00001').shock_mode
@@ -146,10 +222,10 @@ class DbWorkerTestCase(unittest.TestCase):
         """
         Test is the black list status changing works correctly
         """
-        actual_user_status_before = db_worker.get_user(tg_id=config.ADMIN_ID_TG).is_blacklisted
+        actual_user_status_before = self.admin.is_blacklisted
         expected_user_status_before = False
         db_worker.change_user_bl_status(user_tg_id=config.ADMIN_ID_TG, change_for=True)
-        actual_user_status_after = db_worker.get_user(tg_id=config.ADMIN_ID_TG).is_blacklisted
+        actual_user_status_after = self.admin.is_blacklisted
         expected_user_status_after = True
         db_worker.change_user_bl_status(user_tg_id=config.ADMIN_ID_TG, change_for=False)
         self.assertEqual(
@@ -161,7 +237,7 @@ class DbWorkerTestCase(unittest.TestCase):
         """
         Correctness of adding new example in db process
         """
-        user_id = db_worker.get_user(tg_id=config.ADMIN_ID_TG).user_id
+        user_id = self.admin.user_id
         db_worker.add_example(
             example_text='testexample',
             user_tg_id=config.ADMIN_ID_TG
@@ -250,7 +326,7 @@ class DbWorkerTestCase(unittest.TestCase):
         """
         Test is the func changes point count correctly
         """
-        test_user = db_worker.get_user(tg_id=config.ADMIN_ID_TG)
+        test_user = self.admin
         expected = test_user.points + 1
         db_worker.add_or_change_day_stat(
             tg_id=test_user.tg_id,
@@ -361,7 +437,7 @@ class DbWorkerTestCase(unittest.TestCase):
         """
         Test is the func create_file_with_user_words returns correct file path
         """
-        path = '../../../temporary'
+        path = self.path
         for i in pathlib.Path(path).rglob('*'):
             os.remove(i)
         actual = os.path.isfile(db_worker.create_file_with_user_words(
@@ -383,7 +459,7 @@ class DbWorkerTestCase(unittest.TestCase):
             user_tg_id=config.ADMIN_ID_TG
         )
         actual = db_worker.get_user_example(
-            user=db_worker.get_user(tg_id=config.ADMIN_ID_TG),
+            user=self.admin,
             example_id=expected.ex_id,
         )
         self.assertEqual(expected, actual)
@@ -397,7 +473,7 @@ class DbWorkerTestCase(unittest.TestCase):
             user_tg_id=config.ADMIN_ID_TG
         )
         actual = db_worker.get_user_example(
-            user=db_worker.get_user(tg_id=config.ADMIN_ID_TG),
+            user=self.admin,
             example=expected.example,
         )
         self.assertEqual(expected, actual)
@@ -408,7 +484,7 @@ class DbWorkerTestCase(unittest.TestCase):
         """
         expected = None
         actual = db_worker.get_user_example(
-            user=db_worker.get_user(tg_id=config.ADMIN_ID_TG),
+            user=self.admin,
             example_id=-1,
         )
         self.assertEqual(expected, actual)
@@ -442,7 +518,7 @@ class DbWorkerTestCase(unittest.TestCase):
             example=test_example
         )
         actual = db_worker.get_user_word(
-            user=db_worker.get_user(tg_id=config.ADMIN_ID_TG),
+            user=self.admin,
             word_id=expected.word_id
         )
         self.assertEqual(expected, actual)
@@ -463,7 +539,7 @@ class DbWorkerTestCase(unittest.TestCase):
             example=test_example
         )
         actual = db_worker.get_user_word(
-            user=db_worker.get_user(tg_id=config.ADMIN_ID_TG),
+            user=self.admin,
             word=expected.word
         )
         self.assertEqual(expected, actual)
@@ -484,7 +560,7 @@ class DbWorkerTestCase(unittest.TestCase):
             example=test_example
         )
         actual = db_worker.get_user_word(
-            user=db_worker.get_user(tg_id=config.ADMIN_ID_TG),
+            user=self.admin,
             description=expected.description
         )
         self.assertEqual(expected, actual)
@@ -649,7 +725,7 @@ class DbWorkerTestCase(unittest.TestCase):
         """
         Test is apikey adding
         """
-        admin = db_worker.get_user(tg_id=config.ADMIN_ID_TG)
+        admin = self.admin
         expected = bool(len(list(db_worker.engine.execute(
             'SELECT * FROM apikeys WHERE user_id = {}'.format(admin.user_id)))))
         actual = db_worker.is_api_keys(user=admin)
@@ -659,7 +735,7 @@ class DbWorkerTestCase(unittest.TestCase):
         """
         Test is func get_user_api_key returns correct key
         """
-        admin = db_worker.get_user(tg_id=config.ADMIN_ID_TG)
+        admin = self.admin
         expected = list(db_worker.engine.execute(
             'SELECT * FROM apikeys WHERE user_id = {}'.format(admin.user_id)))[0][1]
         actual = db_worker.get_user_api_key(user=admin)
@@ -669,7 +745,7 @@ class DbWorkerTestCase(unittest.TestCase):
         """
         Test is func get_user_by_api_key returns correct python obj
         """
-        expected = db_worker.get_user(tg_id=config.ADMIN_ID_TG)
+        expected = self.admin
         actual = db_worker.get_user_by_api_key(token=db_worker.get_user_api_key(user=expected))
         self.assertEqual(expected, actual)
 
