@@ -4,6 +4,12 @@
 TOKEN_TG = '111111111111111111111111111'   # t.me/tele_word_learning_bot
 ADMIN_ID_TG = 11111111111111111    # t.me/vindemure
 
+
+# Redis:
+REDIS_HOST = 'redis-111111.c111.eu-central-1-1.ec2.cloud.redislabs.com'
+REDIS_PORT = 11111
+REDIS_PASSWORD = 'pws'
+
 # SQL part:
 MY_SQL = 'mysql+mysqlconnector://login:psw@ip/db'   # hetzner 1111
 
