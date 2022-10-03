@@ -26,7 +26,17 @@ logging.basicConfig(
 
 ########################################################################################################################
 def build_graph(user_id: str | int, days, total, mistakes, first_try, path: str) -> str:
-    logger.info(f'{user_id} Start build graph with: \n\n{days}\n{total}\n{mistakes}\n{first_try}\n')
+    """
+    The function builds a graph from the received arrays and returns a place with a graph image
+    :param user_id: user_id use for logs
+    :param days: array with text data as example ['M', 'T', 'W']
+    :param total: array with first graph data. Ex:[10, 12, 6]
+    :param mistakes: array with second graph data Ex:[2, 0, 6]
+    :param first_try: array with third graph data Ex:[8, 12, 6]
+    :param path: string where func have to save result image file
+    :return: path with image file
+    """
+    logger.info(f'[{user_id}]: Start build graph with: \n\n{days}\n{total}\n{mistakes}\n{first_try}\n')
 
     picture = plt.figure(
         figsize=(6.4, 4.8),
@@ -83,23 +93,33 @@ def build_graph(user_id: str | int, days, total, mistakes, first_try, path: str)
         markersize=4,
         linewidth=1.5)
 
-    logger.info(f"{user_id} here f'{path}statistic_{user_id}_{str(datetime.date.today())}.png'")
+    logger.info(f"[{user_id}]: Here f'{path}statistic_{user_id}_{str(datetime.date.today())}.png'")
     pic_name = path + f'statistic{user_id}.png'
     picture.savefig(pic_name)
-    logger.info(f'{user_id} Graph successfully saved to {pic_name}')
+    logger.info(f'[{user_id}]: Graph successfully saved to {pic_name}')
     return pic_name
 
 
-def get_seven_day():
+def get_seven_day() -> list:
+    """
+    :return: The constructed sequence of days, depending on what day it will be at -1 position today
+    """
     week = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sr', 'Su']
     today = datetime.datetime.today().weekday()
     return week[-1:today:-1][::-1] + week[0:today] + [week[today]]
 
 
 async def statistic_cmd(message: types.Message, state: FSMContext):
-
+    """
+    0 action
+        send user
+         graph with him 7-day statistic
+         user current shock mode
+         user first time use
+         user`s total points and words count
+    """
     username = message.from_user.username
-    logger.info(f'{username} Start statistic')
+    logger.info(f'[{username}]: Start statistic')
     await state.reset_state(with_data=False)
 
     answer = text(
@@ -117,12 +137,12 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
             flag='check'
         )
     except Exception as e:
-        logger.error(f'{username} unknown sql error {e}')
+        logger.error(f'[{username}]: Unknown sql error {e}')
 
     try:
         user = db_worker.get_user(tg_id=message.from_user.id)
     except Exception as e:
-        logger.error(f'{username} Houston, we have got a problem {e, message.from_user.id}')
+        logger.error(f'[{username}]: Houston, we have got a problem {e, message.from_user.id}')
         answer = text(
             emojize(":oncoming_police_car:"), r"There was a big trouble when compiling your test\, "
                                               r"please try again and then write to the administrator\.")
@@ -132,7 +152,7 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
     try:
         total_words_count = db_worker.word_count(user_tg_id=message.from_user.id)
     except Exception as e:
-        logger.error(f'{username} Houston, we have got a problem {e, message.from_user.id}')
+        logger.error(f'[{username}]: Houston, we have got a problem {e, message.from_user.id}')
         total_words_count = 'error, please try again and then write to the admin'
 
     answer = text(
@@ -158,7 +178,7 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
             user_sql_logs=last_seven_user_log_list
         )
     except Exception as e:
-        logger.error(f'{username} Houston, we have got a unknown sql problem {e}')
+        logger.error(f'[{username}]: Houston, we have got a unknown sql problem {e}')
         photo = BACKUP_GRAPH
     else:
         photo = build_graph(
@@ -176,7 +196,7 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
             parse_mode=ParseMode.MARKDOWN_V2,
         )
     except Exception as e:
-        logger.error(f'{username} Houston, we have got a problem {e, photo}')
+        logger.error(f'[{username}]: Houston, we have got a problem {e, photo}')
         await message.answer(
             text=answer,
             parse_mode=ParseMode.MARKDOWN_V2,
@@ -184,11 +204,15 @@ async def statistic_cmd(message: types.Message, state: FSMContext):
     finally:
         if photo != BACKUP_GRAPH:
             os.remove(photo)
-            logger.info(f'{username} Graph {photo} successfully removed')
-    logger.info(f'{username} Statistical data successfully sent to the user')
+            logger.info(f'[{username}]: Graph {photo} successfully removed')
+    logger.info(f'[{username}]: Statistical data successfully sent to the user')
 
 
 ########################################################################################################################
 def register_statistic_handlers(dp: Dispatcher):
-    logger.info(f'| {dp} | Register statistic handlers')
+    """
+    The function serves as a register of all the module coroutines in the correct sequence
+     (used instead of decorators to create a more readable structure)
+    """
+    logger.info(f'[{dp}]: Register statistic handlers')
     dp.register_message_handler(statistic_cmd, commands=['statistic'], state='*')

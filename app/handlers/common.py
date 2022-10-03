@@ -23,6 +23,11 @@ logging.basicConfig(
 
 ########################################################################################################################
 async def start_cmd(message: types.Message, state: FSMContext):
+    """
+    independent action
+        checks if the user exists in the database - creates a new user if necessary
+        hello for user
+    """
     logger.info(f'|{message.from_user.username}| Use start command')
 
     db_worker.pending_rollback(username=message.from_user.username)
@@ -50,6 +55,11 @@ async def start_cmd(message: types.Message, state: FSMContext):
 
 
 async def cancel_cmd(message: types.Message, state: FSMContext):
+    """
+    independent action
+        cancel all actions
+        reset state
+    """
     logger.info(f'| {message.from_user.username} | Use cancel command')
     await state.reset_state(with_data=False)
     txt = text(r'Action canceled\.', '\n',
@@ -59,6 +69,11 @@ async def cancel_cmd(message: types.Message, state: FSMContext):
 
 
 async def help_cmd(message: types.Message, state: FSMContext):
+    """
+    independent action
+        reset state
+        show all available bot command
+    """
     logger.info(f'| {message.from_user.username} | Use help command')
     await state.reset_state(with_data=False)
     txt = text(
@@ -101,6 +116,11 @@ async def help_cmd(message: types.Message, state: FSMContext):
 
 #####################################################################
 async def admin_panel_cmd(message: types.Message, state: FSMContext):
+    """
+    independent action
+        reset state
+        show all available bot command for admin
+    """
     logger.info(f'| {message.from_user.username} | Show admin panel')
     await state.reset_state(with_data=False)
 
@@ -113,6 +133,11 @@ async def admin_panel_cmd(message: types.Message, state: FSMContext):
 
 
 async def admin_show_bl_cmd(message: types.Message, state: FSMContext):
+    """
+    independent action
+        reset state
+        show black list of users to admin
+    """
     logger.info(f'| {message.from_user.username} | Show black list')
     await state.reset_state(with_data=False)
 
@@ -132,6 +157,10 @@ async def admin_show_bl_cmd(message: types.Message, state: FSMContext):
 
 ########################################################################################################################
 def register_handlers_common(dp: Dispatcher, admin_id: int):
+    """
+    The function serves as a register of all the module coroutines in the correct sequence
+     (used instead of decorators to create a more readable structure)
+    """
     logger.info(f'| {dp, admin_id} | Register common handlers')
     dp.register_message_handler(start_cmd, commands=['start'], state='*')
     dp.register_message_handler(help_cmd, commands=['help'], state='*')

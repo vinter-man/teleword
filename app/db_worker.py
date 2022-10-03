@@ -185,13 +185,13 @@ def change_user_last_using(user_tg_id: str, flag: str = 'change'):
     difference = int(difference.days)
 
     if not difference or (difference == 1 and flag == 'check'):
-        logger.info(f'| {user_tg_id} | no different user using time')
+        logger.info(f'[{user_tg_id}] No different user using time')
     elif difference == 1 and flag == 'change':
-        logger.info(f'| {user_tg_id} | shock_mode +1 day')
+        logger.info(f'[{user_tg_id}]: Shock_mode +1 day')
         user.shock_mode += 1
         user.last_use_time = user.current_use_time
     else:
-        logger.info(f'| {user_tg_id} | shock_mode is finish')
+        logger.info(f'[{user_tg_id}]: Shock_mode is finish')
         user.shock_mode = 0
         user.last_use_time = user.current_use_time
 
@@ -222,7 +222,7 @@ def change_user_bl_status(user_tg_id: str, change_for: bool):
 
     session.add(user)
     session.commit()
-    logger.info(f'| {user_tg_id} | changed black list status to "{change_for}"')
+    logger.info(f'[{user_tg_id}]: Changed black list status to "{change_for}"')
 
 
 ########################################################################################################################
@@ -240,7 +240,7 @@ def add_example(example_text: str, user_tg_id: str) -> UsersExamples:
         UsersExamples.user_id == user_id
     )).first()   # First result | None
     if example_in:      # no need to add
-        logger.info(f'| {user_tg_id} | example already added return value')
+        logger.info(f'[{user_tg_id}]: Example already added return value')
         return example_in
 
     example_to_add = UsersExamples(
@@ -249,7 +249,7 @@ def add_example(example_text: str, user_tg_id: str) -> UsersExamples:
     )
     session.add(example_to_add)
     session.commit()
-    logger.info(f'| {user_tg_id} | example successfully added return value')
+    logger.info(f'[{user_tg_id}]: Example successfully added return value')
     return example_to_add
 
 
@@ -265,7 +265,7 @@ def add_word(word: str, description: str, category: str, rating: int, example: U
     )).first()   # First result | None
 
     if word_in:
-        logger.warning(f'| {word, example.ex_id} | word already added')
+        logger.warning(f'[{word, example.ex_id}]: Word already added')
         return word_in
 
     word_to_add = UsersExamplesWords(
@@ -277,7 +277,7 @@ def add_word(word: str, description: str, category: str, rating: int, example: U
     )
     session.add(word_to_add)
     session.commit()
-    logger.info(f'| {word, example.ex_id} | word successfully added')
+    logger.info(f'[{word, example.ex_id}]: Word successfully added')
     return word_to_add
 
 
@@ -308,14 +308,14 @@ def change_rating(word_id: int, new_rating: int):
     word = get_word(word_id=word_id)
 
     if not word:
-        logger.warning(f'| {word_id} | no word with user word_id')
+        logger.warning(f'[{word_id}]: No word with user word_id')
         raise KeyError(f'{word_id}')
 
     old_rating = word.rating
     word.rating = new_rating
     session.add(word)
     session.commit()
-    logger.info(f'changed word rating {old_rating} >>> {new_rating}')
+    logger.info(f'[{word_id}]: Changed word rating {old_rating} >>> {new_rating}')
 
 
 def add_or_change_day_stat(tg_id: str, first_try: int, mistakes: int, points: int = 15):
@@ -339,7 +339,7 @@ def add_or_change_day_stat(tg_id: str, first_try: int, mistakes: int, points: in
         day_stat_log.firs_try_success += first_try
         day_stat_log.mistake += mistakes
         day_stat_log.total += points
-        logger.info(f'change day stat f_try {first_try}, mistakes {mistakes}, total {points}...')
+        logger.info(f'[{tg_id}]: Change day stat f_try {first_try}, mistakes {mistakes}, total {points}...')
     else:
         day_stat_log = UsersStatistics(
             day=today,
@@ -348,14 +348,14 @@ def add_or_change_day_stat(tg_id: str, first_try: int, mistakes: int, points: in
             total=points,
             user_id=user_id
         )
-        logger.info(f'add day stat f_try {first_try}, mistakes {mistakes}, total {points}...')
+        logger.info(f'[{tg_id}]: Add day stat f_try {first_try}, mistakes {mistakes}, total {points}...')
 
     user.points += points
 
     session.add(day_stat_log)
     session.add(user)
     session.commit()
-    logger.info(f'successes add_or_change_day_stat and changing total user points')
+    logger.info(f'[{tg_id}]: Successes add_or_change_day_stat and changing total user points')
 
 
 def get_words_data(user_tg_id: str) -> list:
@@ -385,7 +385,7 @@ def get_words_data(user_tg_id: str) -> list:
         }
         for i in sql_query
     ]
-    logger.info(f'{user_tg_id} Successes return words data')
+    logger.info(f'[{user_tg_id}]: Successes return words data')
     return words
 
 
@@ -406,13 +406,14 @@ def get_lesson_data(tg_id: str) -> list:
         Returns a list filled with 15-lists of 4 words
         of dict {'tg_id', 'word', 'description', 'example', 'category', 'rating', 'word_id', 'is_main'}
     """
-    logger.info(f'{tg_id} Start get_lesson_data')
+    logger.info(f'[{tg_id}]: Start get_lesson_data')
     words = get_words_data(user_tg_id=tg_id)
     words_len = len(words)
     if words_len < 15:
         raise MinLenError(f"{words_len}")
+    logger.info(f'[{tg_id}]: Start sort words {words_len}')
     words.sort(key=lambda word: word['rating'], reverse=True)
-
+    logger.info(f'[{tg_id}]: Sorted success')
     # the most difficult words are better learned 1/3(5):
     # 1 - 3 when repeated at the beginning (as a work on mistakes)
     # 14 - 15 and as the last tasks (like a boss in a video game,
@@ -482,7 +483,7 @@ def get_lesson_data(tg_id: str) -> list:
         ready_tasks.append(current_lesson_data)
 
     # [{aw, bw, cw, dw}, {}, {}, {}, ...]
-    logger.info(f'{tg_id} Return data for lesson')
+    logger.info(f'[{tg_id}]: Return data for lesson')
     return ready_tasks
 
 
@@ -699,7 +700,7 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
         raise NameError(f'fyle type "{file_name}" is not defined')
     file.close()
 
-    logger.info(f'{user_tg_id} Successes return new temporary user file path')
+    logger.info(f'[{user_tg_id}]: Successes return new temporary user file path')
     return file_name
 
 
@@ -764,13 +765,13 @@ def get_word_category(word: str, default='-', url=URL_OXF) -> str:
     }
     r = requests.get(url, headers=headers)
     if r.status_code != 200:
-        logger.warning(f'{word} Requests error '
+        logger.warning(f'[{word}]: Requests error '
                        f'{r.status_code, headers, url} \n {r.text} \n ')
         return default
 
     word_data = r.json()
     if "error" in word_data.keys():
-        logger.warning(f'{word} No entry found that matches the provided data'
+        logger.warning(f'[{word}]: No entry found that matches the provided data'
                        f'{r.status_code, headers, url} \n {r.text} \n ')
         return default
 
@@ -895,7 +896,7 @@ def is_connection_alive() -> bool:
     try:
         session.query(Users).filter_by(tg_id=ADMIN_ID_TG).first()
     except mysql.connector.errors.OperationalError as e:
-        logger.error(f'Connection is dead {e}')
+        logger.error(f'[{str(session)}]: Connection is dead {e}')
         return False
     return True
 

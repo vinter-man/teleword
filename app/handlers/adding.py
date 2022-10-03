@@ -24,7 +24,9 @@ logging.basicConfig(
 
 ########################################################################################################################
 class AddingData(StatesGroup):
-
+    """
+    Stateful class for creating acceptance logic - validating and updating data by the user
+    """
     waiting_for_example = State()
     waiting_for_word = State()
     waiting_for_description = State()
@@ -35,7 +37,7 @@ class AddingData(StatesGroup):
 async def add_cmd(message: types.Message, state: FSMContext):
     """
     0 action
-        instruction
+        send instruction to user
     """
     username = message.from_user.username
     user_data = await state.get_data()
@@ -43,7 +45,7 @@ async def add_cmd(message: types.Message, state: FSMContext):
     last_example_length = 0
     if last_example:
         last_example_length = len(last_example)
-    logger.info(f'{username} Start adding new data. Last user example len - {last_example_length}')
+    logger.info(f'[{username}]: Start adding new data. Last user example len - {last_example_length}')
 
     answer1 = text(
             bold('A small clue:\n'),
@@ -65,7 +67,7 @@ async def add_cmd(message: types.Message, state: FSMContext):
     else:
         await message.answer(answer2, parse_mode=ParseMode.MARKDOWN_V2)
 
-    logger.info(f'{username} Jump to word input')
+    logger.info(f'[{username}]: Jump to word input')
     await AddingData.waiting_for_example.set()
 
 
@@ -79,7 +81,7 @@ async def cb_get_example_set_word_input(call: types.CallbackQuery, state: FSMCon
     user_data = await state.get_data()
     user_example = user_data.get('last_example')
     example_length = len(user_example)
-    logger.info(f'{username} Send call with example({example_length}) \n\n >>> {user_example}\n\n')
+    logger.info(f'[{username}]: Send call with example({example_length}) \n\n >>> {user_example}\n\n')
 
     # everything is fine. Write current data example, answer the user, set next step state
     await state.update_data(current_example=user_example)   # it will be switched with the last_example
@@ -111,7 +113,7 @@ async def ms_get_example_set_word_input(message: types.Message, state: FSMContex
     username = message.from_user.username
     user_example = message.text
     example_length = len(user_example)
-    logger.info(f'{username} Send message with example({example_length}) \n\n >>> {user_example}\n\n')
+    logger.info(f'[{username}]: Send message with example({example_length}) \n\n >>> {user_example}\n\n')
 
     # wrong length
     if example_length > 400 or example_length < 5:
@@ -142,7 +144,7 @@ async def cb_get_word_back_to_add(call: types.CallbackQuery, state: FSMContext):
         The user changed his mind about entering a word
         and decided to return to entering an example
     """
-    logger.info(f'| {call.from_user.username} | Use back to add call')
+    logger.info(f'[{call.from_user.username}]: Use back to add call')
     await call.message.delete_reply_markup()
 
     txt = text(emojize("Let's take a step back to introduce an example :walking:"))
@@ -160,7 +162,7 @@ async def ms_get_word_set_description_input(message: types.Message, state: FSMCo
     username = message.from_user.username
     user_word = message.text
     word_length = len(user_word)
-    logger.info(f'{username} Send message with word({word_length}) >>> {user_word}')
+    logger.info(f'[{username}]: Send message with word({word_length}) >>> {user_word}')
 
     # wrong length
     if word_length > 135 or word_length < 1:
@@ -191,7 +193,7 @@ async def cb_get_description_back_to_word(call: types.CallbackQuery):
         The user changed his mind about entering a description
         and decided to return to entering an word
     """
-    logger.info(f'| {call.from_user.username} | Use back to word call')
+    logger.info(f'[{call.from_user.username}]: Use back to word call')
     await call.message.delete_reply_markup()
 
     # successfully accepted the command
@@ -227,7 +229,7 @@ async def ms_get_description_write_data_to_sql(message: types.Message, state: FS
     username = message.from_user.username
     user_description = message.text
     description_length = len(user_description)
-    logger.info(f'{username} Send message with description({description_length}) \n\n >>> {user_description}\n\n')
+    logger.info(f'[{username}]: Send message with description({description_length}) \n\n >>> {user_description}\n\n')
 
     # wrong length
     if description_length > 400 or description_length < 1:
@@ -299,7 +301,7 @@ async def cb_delegate_add(call: types.CallbackQuery, state: FSMContext):
         delegate work in add_cmd coroutine
     """
     username = call.from_user.username
-    logger.info(f'{username} Send call with /add command')
+    logger.info(f'[{username}]: Send call with /add command')
 
     await call.message.delete_reply_markup()
     await call.answer(show_alert=False)
@@ -311,7 +313,7 @@ async def cb_cancel(call: types.CallbackQuery, state: FSMContext):
     independent action
         exit call works as a /cancel
     """
-    logger.info(f'| {call.from_user.username} | Use cancel call')
+    logger.info(f'[{call.from_user.username}]: Use cancel call')
 
     await call.message.delete_reply_markup()
     txt = text(r'Main menu with available commands\: /help')
@@ -327,7 +329,11 @@ async def cb_cancel(call: types.CallbackQuery, state: FSMContext):
 
 ########################################################################################################################
 def register_adding_handlers(dp: Dispatcher):
-    logger.info(f'| {dp} | Register adding handlers')
+    """
+    The function serves as a register of all the module coroutines in the correct sequence
+     (used instead of decorators to create a more readable structure)
+    """
+    logger.info(f'[{dp}]: Register adding handlers')
 
     dp.register_message_handler(add_cmd, commands=['add'])
 

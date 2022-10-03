@@ -23,7 +23,9 @@ logging.basicConfig(
 
 ########################################################################################################################
 class UpdateData(StatesGroup):
-
+    """
+    Stateful class for creating the logic of editing or deleting desired user data
+    """
     waiting_for_data_type = State()
     waiting_for_action = State()
     waiting_for_data_id = State()
@@ -370,7 +372,7 @@ async def ms_get_new_data_set_finish(message: types.Message, state: FSMContext):
                 bold('\n\tWord'), ' : ', italic(fr'{word_obj.word}'),
                 bold('\n\tDescription'), ' : ', italic(fr'{word_obj.description}'))
     except Exception as e:
-        logger.error(f'{username} Houston, we have got a unknown sql problem {e}')
+        logger.error(f'[{username}]: Houston, we have got a unknown sql problem {e}')
         answer = text(
             emojize(":oncoming_police_car:"), r"There was a big trouble when edit your data\, "
                                               r"please try again and then write to the administrator\.")
@@ -427,7 +429,7 @@ async def cb_get_delete_data_set_finish(call: types.CallbackQuery, state: FSMCon
         answer = text(
             bold('Congratulate'), r'your data have been successfully deleting\!', '\n',)
     except Exception as e:
-        logger.error(f'{username} Houston, we have got a unknown sql problem {e}')
+        logger.error(f'[{username}]: Houston, we have got a unknown sql problem {e}')
         answer = text(
             emojize(":oncoming_police_car:"), r"There was a big trouble when deleting your data\, "
                                               r"please try again and then write to the administrator\.")
@@ -449,7 +451,7 @@ async def cb_delegate_change(call: types.CallbackQuery, state: FSMContext):
         delegate work in change_cmd coroutine
     """
     username = call.from_user.username
-    logger.info(f'{username} Send call with /change command')
+    logger.info(f'[{username}]: Send call with /change command')
 
     await call.message.delete_reply_markup()
     await call.answer(show_alert=False)
@@ -458,7 +460,11 @@ async def cb_delegate_change(call: types.CallbackQuery, state: FSMContext):
 
 ########################################################################################################################
 def register_updating_handlers(dp: Dispatcher):
-    logger.info(f'| {dp} | Register updating handlers')
+    """
+    The function serves as a register of all the module coroutines in the correct sequence
+     (used instead of decorators to create a more readable structure)
+    """
+    logger.info(f'[{dp}]: Register updating handlers')
 
     dp.register_message_handler(change_cmd, commands=['change'],
                                 state='*')

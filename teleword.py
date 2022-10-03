@@ -4,7 +4,6 @@ import logging
 import subprocess
 import time
 
-from app import db_worker
 from config.config import PYTHON_PATH
 from app.db_worker import is_connection_alive
 
@@ -67,7 +66,7 @@ bot_process = multiprocessing.Process(
 
 ########################################################################################################################
 if __name__ == '__main__':     # Runs an entire two-part application by two different processes
-    logger.info("Starting teleword")
+    logger.info(": Starting teleword")
     api_process.start()
     bot_process.start()
     status_checker([api_process, bot_process])

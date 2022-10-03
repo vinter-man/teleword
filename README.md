@@ -15,7 +15,7 @@ Let's generate sssh keys using the s4lv [ed25519](https://ru.wikipedia.org/wiki/
 ```
 ssh-keygen -t ed25519 
 ```
-![img.png](config/ssh-keygen.png)
+![img.png](img/readme_images/ssh-keygen.png)
 
 Setting up access to sssh keys
 ```
@@ -31,16 +31,16 @@ Host <SSH NAME>
  IdentityFile ~/.ssh/<KEY>
  IdentitiesOnly yes
 ```
-![img.png](config/ssh-config.png)
+![img.png](img/readme_images/ssh-config.png)
 
 
 Copy the public key and transfer it to github
 ```
  cat <KEY>.pub
 ```
-![img.png](config/ssh_github_addind.png)
+![img.png](img/readme_images/ssh_github_addind.png)
 
-![img.png](config/ssh-key-added.png)
+![img.png](img/readme_images/ssh-key-added.png)
 
 ```
 cd #
@@ -48,7 +48,7 @@ git clone git@<SSH NAME>:vinter-man/teleword.git
 ```
 > yes
 
-![img.png](config/git-establish.png)
+![img.png](img/readme_images/git-establish.png)
 
 
 ```
@@ -82,7 +82,7 @@ python -m venv <VENV NAME>
 source <VENV NAME>/bin/activate
 pip install -r requirements.txt
 ```
-![img.png](config/py-start.png)
+![img.png](img/readme_images/py-start.png)
 After a successful launch, you can exit
 
 Now you have to decide how it will be most convenient for you to launch your bot for continuous operation.

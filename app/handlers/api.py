@@ -25,7 +25,9 @@ logging.basicConfig(
 
 ########################################################################################################################
 class ApiKeyRequest(StatesGroup):
-
+    """
+    Stateful class for creating logic for generating api keys and validating user data to the administrator
+    """
     waiting_for_purpose = State()
     waiting_for_phone = State()
 
@@ -132,7 +134,7 @@ async def ms_get_purpose_set_phone_input(message: types.Message, state: FSMConte
     logger.info(f'[{username}]: Catch user api`s purpose: "{user_text}"')
 
     if len(user_text) < 40:
-        logger.info(f'[{username}] Incorrect purpose - too small "{user_text}"')
+        logger.info(f'[{username}]: Incorrect purpose - too small "{user_text}"')
         answer = text(
             emojize(':police_car: Be bold'), italic(
                 f'"{message.text if len(message.text) <= 12 else message.text[:13] + "..."}"\n'),
@@ -169,7 +171,7 @@ async def ms_get_phone_sql_admin_send(message: types.Message, state: FSMContext)
     logger.info(f'[{username}]: Catch user phone number: "{user_text}"')
 
     if not pattern.findall(user_text):
-        logger.info(f'[{username}] Incorrect phone number "{user_text}"')
+        logger.info(f'[{username}]: Incorrect phone number "{user_text}"')
         answer = text(
             emojize(r':police_car: Either our number filter is wrong\, or you have entered an invalid number '), italic(
                 f'"{message.text if len(message.text) <= 12 else message.text[:13] + "..."}"\n'),
@@ -329,7 +331,11 @@ async def ms_get_phone_sql_admin_send(message: types.Message, state: FSMContext)
 
 ########################################################################################################################
 def register_api_handlers(dp: Dispatcher):
-    logger.info(f'| {dp} | Register api handlers')
+    """
+    The function serves as a register of all the module coroutines in the correct sequence
+     (used instead of decorators to create a more readable structure)
+    """
+    logger.info(f'[{dp}]: Register api handlers')
 
     dp.register_message_handler(api_cmd, commands=['api'], state='*')
     dp.register_message_handler(ms_get_purpose_set_phone_input, state=ApiKeyRequest.waiting_for_purpose)

@@ -23,7 +23,10 @@ logging.basicConfig(
 
 ########################################################################################################################
 class SendData(StatesGroup):
-
+    """
+    Stateful class for creating the logic of forming the correct query in the database
+     and issuing the result in the correct form
+    """
     waiting_for_filter = State()
     waiting_for_order_key = State()
     waiting_for_file_type = State()
@@ -73,7 +76,7 @@ async def ms_get_filter_set_order_key_choose(message: types.Message, state: FSMC
     logger.info(f'[{username}]: Catch filter: "{user_text}"')
 
     if user_text not in possible_answers:
-        logger.info(f'[{username}] Incorrect filter "{user_text}"')
+        logger.info(f'[{username}]: Incorrect filter "{user_text}"')
         answer = text(
             emojize(':police_car: Something is wrong here'), italic(
                 f'"{message.text if len(message.text) <= 12 else message.text[:13] + "..."}"\n'),
@@ -114,7 +117,7 @@ async def ms_get_order_key_set_file_type_choose(message: types.Message, state: F
     logger.info(f'[{username}]: Catch order key: "{user_text}"')
 
     if user_text not in possible_answers:
-        logger.info(f'[{username}] Incorrect order key "{user_text}"')
+        logger.info(f'[{username}]: Incorrect order key "{user_text}"')
         answer = text(
             emojize(r":police_car: There\'s something wrong here"), italic(
                 f'"{message.text if len(message.text) <= 20 else message.text[:12] + "..."}"\n'),
@@ -173,7 +176,7 @@ async def ms_get_file_type_send_data(message: types.Message, state: FSMContext):
     for file_type_answer in answers:
         await message.bot.send_chat_action(message.from_user.id, ChatActions.UPLOAD_DOCUMENT)
         if file_type_answer not in possible_answers:
-            logger.info(f'[{username}] Incorrect file type "{file_type_answer}"')
+            logger.info(f'[{username}]: Incorrect file type "{file_type_answer}"')
             answer = text(
                 emojize(r":police_car: There\'s not right here"), italic(
                     f'"{file_type_answer if len(file_type_answer) <= 12 else file_type_answer[:12] + "..."}"\n'),
@@ -224,7 +227,11 @@ async def ms_get_file_type_send_data(message: types.Message, state: FSMContext):
 
 ########################################################################################################################
 def register_checking_handlers(dp: Dispatcher):
-    logger.info(f'| {dp} | Register checking handlers')
+    """
+    The function serves as a register of all the module coroutines in the correct sequence
+     (used instead of decorators to create a more readable structure)
+    """
+    logger.info(f'[{dp}]: Register checking handlers')
 
     dp.register_message_handler(data_cmd, commands=['data'], state='*')
     dp.register_message_handler(ms_get_filter_set_order_key_choose, state=SendData.waiting_for_filter)
