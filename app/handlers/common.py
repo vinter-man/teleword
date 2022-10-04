@@ -2,7 +2,6 @@ import datetime
 import logging
 import sys
 
-import bot
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import IDFilter
 from aiogram import Dispatcher, types
