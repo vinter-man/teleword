@@ -1,7 +1,6 @@
 * 🧳 Launched May 2022
 * 🚪 Release v2.2.1
 * 📦Code size 300 КB
-* :uk: languages
 
 
 ![main picture](img/readme_images/main.png)
