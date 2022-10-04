@@ -1,7 +1,6 @@
 * 🧳 Launched May 2022
 * 🚪 Release v2.2.1
 * 📦Code size 300 КB
-* 🇺🇸 🇬🇧 languages
 
 
 ![main picture](img/readme_images/main.png)
@@ -125,7 +124,7 @@ We do not hide anything from users, if they need words with the right data type 
 
 ![data-cmd](img/readme_images/data-cmd.png)
 
-If you are a regular user - my advice to you - enjoy a beautiful  ```1. exel``` file
+If you are a regular user - my advice to you - enjoy a beautiful  ```1. exel``` file :sunglasses:
 
 ![data-cmd2](img/readme_images/data-cmd2.png)
 
