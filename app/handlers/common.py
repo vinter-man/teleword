@@ -28,12 +28,12 @@ async def start_cmd(message: types.Message, state: FSMContext):
         checks if the user exists in the database - creates a new user if necessary
         hello for user
     """
-    logger.info(f'|{message.from_user.username}| Use start command')
+    logger.info(f'[{message.from_user.username}]: Use start command')
 
     db_worker.pending_rollback(username=message.from_user.username)
 
     if not db_worker.is_user(str(message.from_user.id)):
-        logger.info(f'|{message.from_user.username}| adding new user to "users" table...')
+        logger.info(f'[{message.from_user.username}]: adding new user to "users" table...')
         await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)
         now = str(datetime.date.today())
         db_worker.add_user(tg_id=str(message.from_user.id),
@@ -46,7 +46,7 @@ async def start_cmd(message: types.Message, state: FSMContext):
                            creation_time=now,
                            last_use_time=now,
                            current_use_time=now)
-        logger.info(f'|{message.from_user.username}| New user added to "users" table')
+        logger.info(f'[{message.from_user.username}]: New user added to "users" table')
 
     await state.reset_state(with_data=False)
     txt = text(r"Let's start\!", " I'm waiting from you commands\n\nMore about commands: /help")
@@ -60,7 +60,7 @@ async def cancel_cmd(message: types.Message, state: FSMContext):
         cancel all actions
         reset state
     """
-    logger.info(f'| {message.from_user.username} | Use cancel command')
+    logger.info(f'[{message.from_user.username}]: Use cancel command')
     await state.reset_state(with_data=False)
     txt = text(r'Action canceled\.', '\n',
                r'Menu with available commands\: /help')
@@ -74,7 +74,7 @@ async def help_cmd(message: types.Message, state: FSMContext):
         reset state
         show all available bot command
     """
-    logger.info(f'| {message.from_user.username} | Use help command')
+    logger.info(f'[{message.from_user.username}]: Use help command')
     await state.reset_state(with_data=False)
     txt = text(
         bold('Hi I\'m Teleword Bot'), emojize(' :robot_face:\n'),
@@ -121,7 +121,7 @@ async def admin_panel_cmd(message: types.Message, state: FSMContext):
         reset state
         show all available bot command for admin
     """
-    logger.info(f'| {message.from_user.username} | Show admin panel')
+    logger.info(f'[{message.from_user.username}]: Show admin panel')
     await state.reset_state(with_data=False)
 
     txt = text(
@@ -138,7 +138,7 @@ async def admin_show_bl_cmd(message: types.Message, state: FSMContext):
         reset state
         show black list of users to admin
     """
-    logger.info(f'| {message.from_user.username} | Show black list')
+    logger.info(f'[{message.from_user.username}]: Show black list')
     await state.reset_state(with_data=False)
 
     db_worker.pending_rollback(username=message.from_user.username)
@@ -161,7 +161,7 @@ def register_handlers_common(dp: Dispatcher, admin_id: int):
     The function serves as a register of all the module coroutines in the correct sequence
      (used instead of decorators to create a more readable structure)
     """
-    logger.info(f'| {dp, admin_id} | Register common handlers')
+    logger.info(f'[{dp, admin_id}]: Register common handlers')
     dp.register_message_handler(start_cmd, commands=['start'], state='*')
     dp.register_message_handler(help_cmd, commands=['help'], state='*')
     dp.register_message_handler(cancel_cmd, commands=['cancel', 'end', 'finish'], state='*')

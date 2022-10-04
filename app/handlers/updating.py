@@ -403,7 +403,7 @@ async def cb_get_delete_data_set_finish(call: types.CallbackQuery, state: FSMCon
     else:    # word | description
         user_data_id = data.get("user_word_id")
     logger.info(f'[{username}]: {user_data_type} to delete: "{user_data_id}"')
-    db_worker.pending_rollback(username=message.from_user.username)
+    db_worker.pending_rollback(username=call.from_user.username)
 
     answer = text(
         rf'Please wait while we delete your {user_data_type} \- this may take some time\.\.\.', '\n')
