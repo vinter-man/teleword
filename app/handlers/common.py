@@ -2,6 +2,7 @@ import datetime
 import logging
 import sys
 
+import bot
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import IDFilter
 from aiogram import Dispatcher, types
@@ -155,6 +156,38 @@ async def admin_show_bl_cmd(message: types.Message, state: FSMContext):
     await message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2)
 
 
+async def admin_tell_users(message: types.Message, state: FSMContext):
+    """
+    independent action
+        Receives a command and a cue
+        Separates the message
+        Announces to all users
+    """
+    logger.info(f'[{message.from_user.username}]: Tell users...')
+    await state.reset_state(with_data=False)
+    db_worker.pending_rollback(username=message.from_user.username)
+
+    speach = text(
+            bold(fr'{message.text}')
+        )
+    users = db_worker.get_users()
+    logger.info(f'[{message.from_user.username}]: \nUsers count: "{len(users)}" \nSpeach to send "{speach}"')
+
+    for user in users:
+        try:
+            await message.bot.send_message(
+                chat_id=user.tg_id,
+                text=speach,
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+        except Exception as e:
+            logger.error(f'[{user.username}]: Houston, we have got a problem {e}')
+        finally:
+            logger.error(f'[{user.username}]: Notified successfully')
+
+    logger.info(f'[{message.from_user.username}]: Told users.')
+
+
 ########################################################################################################################
 def register_handlers_common(dp: Dispatcher, admin_id: int):
     """
@@ -166,3 +199,4 @@ def register_handlers_common(dp: Dispatcher, admin_id: int):
     dp.register_message_handler(help_cmd, commands=['help'], state='*')
     dp.register_message_handler(cancel_cmd, commands=['cancel', 'end', 'finish'], state='*')
     dp.register_message_handler(admin_panel_cmd, IDFilter(user_id=admin_id), commands=['admin'], state='*')
+    dp.register_message_handler(admin_tell_users, IDFilter(user_id=admin_id), commands=['admintell'], state='*')

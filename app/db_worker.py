@@ -225,6 +225,10 @@ def change_user_bl_status(user_tg_id: str, change_for: bool):
     logger.info(f'[{user_tg_id}]: Changed black list status to "{change_for}"')
 
 
+def get_users() -> list:
+    return list(session.query(Users).all())
+
+
 ########################################################################################################################
 # adding.py
 def add_example(example_text: str, user_tg_id: str) -> UsersExamples:

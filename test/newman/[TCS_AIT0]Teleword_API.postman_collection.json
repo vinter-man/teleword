@@ -1,0 +1,4612 @@
+{
+	"info": {
+		"_postman_id": "6c1f54d3-526e-412b-a570-7b7556833464",
+		"name": "[TCS:AIT0] Teleword API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23296937"
+	},
+	"item": [
+		{
+			"name": "[TC:EX00] CRUD EXAMPLE",
+			"item": [
+				{
+					"name": "TCP-1 - MAIN POSITIVE FUNCTIONAL",
+					"item": [
+						{
+							"name": "POST example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"EX_ID\", jsonData.ex_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"EXAMPLE\", jsonData.example\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"USER_ID\", jsonData.user_id\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/example/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"example",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET example after creating | deleting",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Verification of status code\", function () {\r",
+											"    if(pm.variables.get('EXAMPLE')) {    // if True:\r",
+											"        pm.test(\"POST method is correct\", function () {\r",
+											"            pm.response.to.have.status(200);\r",
+											"        });\r",
+											"\r",
+											"        pm.test(\"Check data\", function () {\r",
+											"            var jsonData = pm.response.json();\r",
+											"            pm.expect(jsonData.example).to.eql(pm.variables.get('EXAMPLE'));\r",
+											"            pm.expect(jsonData.ex_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"            pm.expect(jsonData.user_id).to.eql(pm.variables.get('USER_ID'));\r",
+											"        });\r",
+											"    }else {\r",
+											"        pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"        postman.setNextRequest(null)    // finish\r",
+											"    }\r",
+											"\r",
+											"});\r",
+											"\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"EX_ID\", jsonData.ex_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"EXAMPLE\", jsonData.example\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"USER_ID\", jsonData.user_id\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty.",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET example after updating",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check data\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.example).to.eql(pm.variables.get('EXAMPLE'));\r",
+											"    pm.expect(jsonData.ex_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"    pm.expect(jsonData.user_id).to.eql(pm.variables.get('USER_ID'));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DEL example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Delete status\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Your data has been successfully deleted\");\r",
+											"    pm.environment.set(\"EXAMPLE\", null); // change variavle \r",
+											"});\r",
+											"\r",
+											"postman.setNextRequest('GET example after creating | deleting')   // let`s go to GET, where now is already if statement"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "TCP-1 - REQUEST SOMEONE ELSE`S DATA",
+					"item": [
+						{
+							"name": "POST example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"EX_ID\", jsonData.ex_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"EXAMPLE\", jsonData.example\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"USER_ID\", jsonData.user_id\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/example/{{ANOTHER_USER_KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"example",
+										"{{ANOTHER_USER_KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET example after creating | deleting",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Verification of status code\", function () {\r",
+											"    if(pm.variables.get('EXAMPLE')) {    // if True:\r",
+											"        pm.test(\"POST method is correct\", function () {\r",
+											"            pm.response.to.have.status(200);\r",
+											"        });\r",
+											"\r",
+											"        pm.test(\"Check data\", function () {\r",
+											"            var jsonData = pm.response.json();\r",
+											"            pm.expect(jsonData.example).to.eql(pm.variables.get('EXAMPLE'));\r",
+											"            pm.expect(jsonData.ex_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"            pm.expect(jsonData.user_id).to.eql(pm.variables.get('USER_ID'));\r",
+											"        });\r",
+											"    }else {\r",
+											"        pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"        postman.setNextRequest(null)    // finish\r",
+											"    }\r",
+											"\r",
+											"});\r",
+											"\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{ANOTHER_USER_KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{ANOTHER_USER_KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET example by different key",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"\r",
+											"pm.test(\"Error tatus\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"A user with such a token does not have access rights to an example with this id\");\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"EX_ID\", jsonData.ex_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"EXAMPLE\", jsonData.example\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"USER_ID\", jsonData.user_id\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty.",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}/api/example/{{ANOTHER_USER_KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{ANOTHER_USER_KEY}}",
+										"{{EX_ID}}"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT example by different key",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"\r",
+											"pm.test(\"Error tatus\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"A user with such a token does not have access rights to an example with this id\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty.",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET example after updating",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check data\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.example).to.eql(pm.variables.get('EXAMPLE'));\r",
+											"    pm.expect(jsonData.ex_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"    pm.expect(jsonData.user_id).to.eql(pm.variables.get('USER_ID'));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{ANOTHER_USER_KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{ANOTHER_USER_KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DEL example by different key",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"\r",
+											"pm.test(\"Error tatus\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"A user with such a token does not have access rights to an example with this id\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DEL example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Delete status\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Your data has been successfully deleted\");\r",
+											"    pm.environment.set(\"EXAMPLE\", null); // change variavle \r",
+											"});\r",
+											"\r",
+											"postman.setNextRequest('GET example')   // let`s go to GET, where now is already if statement"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{ANOTHER_USER_KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{ANOTHER_USER_KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "TCP-2 - POST WRONG DATA",
+					"item": [
+						{
+							"name": "POST example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"EX_ID\", jsonData.ex_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"EXAMPLE\", jsonData.example\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"USER_ID\", jsonData.user_id\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/example/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"example",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST example wrong lenght",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error tatus\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for example. You have 0, min 5 - max 400\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/example/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"example",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST example wrong lenght",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error tatus\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for example. You have 4, min 5 - max 400\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "ssss",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/example/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"example",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST example wrong lenght max",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error tatus\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for example. You have 401, min 5 - max 400\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/example/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"example",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DEL example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Delete status\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Your data has been successfully deleted\");\r",
+											"    pm.environment.set(\"EXAMPLE\", null); // change variavle \r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "TCP-2 - PUT WRONG DATA",
+					"item": [
+						{
+							"name": "POST example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"EX_ID\", jsonData.ex_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"EXAMPLE\", jsonData.example\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"USER_ID\", jsonData.user_id\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/example/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"example",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET example after creating | deleting",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Verification of status code\", function () {\r",
+											"    if(pm.variables.get('EXAMPLE')) {    // if True:\r",
+											"        pm.test(\"POST method is correct\", function () {\r",
+											"            pm.response.to.have.status(200);\r",
+											"        });\r",
+											"\r",
+											"        pm.test(\"Check data\", function () {\r",
+											"            var jsonData = pm.response.json();\r",
+											"            pm.expect(jsonData.example).to.eql(pm.variables.get('EXAMPLE'));\r",
+											"            pm.expect(jsonData.ex_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"            pm.expect(jsonData.user_id).to.eql(pm.variables.get('USER_ID'));\r",
+											"        });\r",
+											"    }else {\r",
+											"        pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"        postman.setNextRequest(null)    // finish\r",
+											"    }\r",
+											"\r",
+											"});\r",
+											"\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT example with wrong data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"\r",
+											"pm.test(\"Error tatus\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for example. You have 0, min 5 - max 400\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "",
+											"description": "Lenght is not correct(0)",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT example with wrong data 2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"\r",
+											"pm.test(\"Error tatus\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for example. You have 4, min 5 - max 400\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Ssss",
+											"description": "Lenght is not correct (4)",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT example with wrong data 3",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"\r",
+											"pm.test(\"Error tatus\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for example. You have 401, min 5 - max 400\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+											"description": "Lenght is not correct (401)",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET example after negative updating",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check data\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.example).to.eql(pm.variables.get('EXAMPLE'));\r",
+											"    pm.expect(jsonData.ex_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"    pm.expect(jsonData.user_id).to.eql(pm.variables.get('USER_ID'));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"EX_ID\", jsonData.ex_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"EXAMPLE\", jsonData.example\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"USER_ID\", jsonData.user_id\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty.",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET example after updating Copy",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check data\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.example).to.eql(pm.variables.get('EXAMPLE'));\r",
+											"    pm.expect(jsonData.ex_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"    pm.expect(jsonData.user_id).to.eql(pm.variables.get('USER_ID'));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DEL example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Delete status\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Your data has been successfully deleted\");\r",
+											"    pm.environment.set(\"EXAMPLE\", null); // change variavle \r",
+											"});\r",
+											"\r",
+											"postman.setNextRequest('GET example')   // let`s go to GET, where now is already if statement"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "TCP-2 - POST DUPLICATE",
+					"item": [
+						{
+							"name": "POST example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"EX_ID\", jsonData.ex_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"EXAMPLE\", jsonData.example\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"USER_ID\", jsonData.user_id\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/example/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"example",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET example after creating | deleting",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Verification of status code\", function () {\r",
+											"    if(pm.variables.get('EXAMPLE')) {    // if True:\r",
+											"        pm.test(\"POST method is correct\", function () {\r",
+											"            pm.response.to.have.status(200);\r",
+											"        });\r",
+											"\r",
+											"        pm.test(\"Check data\", function () {\r",
+											"            var jsonData = pm.response.json();\r",
+											"            pm.expect(jsonData.example).to.eql(pm.variables.get('EXAMPLE'));\r",
+											"            pm.expect(jsonData.ex_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"            pm.expect(jsonData.user_id).to.eql(pm.variables.get('USER_ID'));\r",
+											"        });\r",
+											"    }else {\r",
+											"        pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"        postman.setNextRequest(null)    // finish\r",
+											"    }\r",
+											"\r",
+											"});\r",
+											"\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST example clone",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check data\", function () {\r",
+											"            var jsonData = pm.response.json();\r",
+											"            pm.expect(jsonData.example).to.eql(pm.variables.get('EXAMPLE'));\r",
+											"            pm.expect(jsonData.ex_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"            pm.expect(jsonData.user_id).to.eql(pm.variables.get('USER_ID'));\r",
+											"        });"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/example/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"example",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Delete status\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Your data has been successfully deleted\");\r",
+											"    pm.environment.set(\"EXAMPLE\", null); // change variavle \r",
+											"});\r",
+											"\r",
+											"postman.setNextRequest('GET example')   // let`s go to GET, where now is already if statement"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "[TC:WR00] CRUD WORD",
+			"item": [
+				{
+					"name": "TCP-1 - MAIN POSITIVE FUNCTIONAL",
+					"item": [
+						{
+							"name": "POST example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"EX_ID\", jsonData.ex_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"EXAMPLE\", jsonData.example\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"USER_ID\", jsonData.user_id\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/example/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"example",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET example after creating",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"200 status code\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check example data\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.example).to.eql(pm.variables.get('EXAMPLE'));\r",
+											"    pm.expect(jsonData.ex_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"    pm.expect(jsonData.user_id).to.eql(pm.variables.get('USER_ID'));\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"WORD_ID\", jsonData.word_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"WORD\", jsonData.word\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"DESCRIPTION\", jsonData.description\r",
+											"        );\r",
+											"      \r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "rusty",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "(of knowledge or a skill) impaired by lack of recent practice.\n(of a metal object) affected by rust.",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET word after creating | deleting",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Verification of status code\", function () {\r",
+											"    if(pm.variables.get('WORD')) {    // if True:\r",
+											"\r",
+											"        pm.test(\"200 status code\", function () {\r",
+											"            pm.response.to.have.status(200);\r",
+											"        });\r",
+											"\r",
+											"        pm.test(\"Check word data\", function () {\r",
+											"            var jsonData = pm.response.json();\r",
+											"            pm.expect(jsonData.word_id).to.eql(pm.variables.get('WORD_ID'));\r",
+											"            pm.expect(jsonData.word).to.eql(pm.variables.get('WORD'));\r",
+											"            pm.expect(jsonData.description).to.eql(pm.variables.get('DESCRIPTION'));\r",
+											"            pm.expect(jsonData.example_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"        });\r",
+											"    \r",
+											"    }else {\r",
+											"        pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"        postman.setNextRequest(null)    // finish\r",
+											"    }\r",
+											"\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"WORD_ID\", jsonData.word_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"WORD\", jsonData.word\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"DESCRIPTION\", jsonData.description\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty...\n",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "(of knowledge or a skill) impaired by lack of recent practice;\n(of a metal object) affected by rust.\n",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}/api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET word after updating",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check word data\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.word_id).to.eql(pm.variables.get('WORD_ID'));\r",
+											"    pm.expect(jsonData.word).to.eql(pm.variables.get('WORD'));\r",
+											"    pm.expect(jsonData.description).to.eql(pm.variables.get('DESCRIPTION'));\r",
+											"    pm.expect(jsonData.example_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DEL word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Delete status\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Your data has been successfully deleted\");\r",
+											"    pm.environment.set(\"WORD\", null); // change variavle \r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET example after word delete",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"404 status code\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"postman.setNextRequest('GET word after creating | deleting')"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "TCP-1 - REQUEST SOMEONE ELSE`S DATA",
+					"item": [
+						{
+							"name": "POST example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"EX_ID\", jsonData.ex_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"EXAMPLE\", jsonData.example\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"USER_ID\", jsonData.user_id\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/example/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"example",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET example after creating",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"200 status code\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check example data\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.example).to.eql(pm.variables.get('EXAMPLE'));\r",
+											"    pm.expect(jsonData.ex_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"    pm.expect(jsonData.user_id).to.eql(pm.variables.get('USER_ID'));\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"WORD_ID\", jsonData.word_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"WORD\", jsonData.word\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"DESCRIPTION\", jsonData.description\r",
+											"        );\r",
+											"      \r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "rusty",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "(of knowledge or a skill) impaired by lack of recent practice.\n(of a metal object) affected by rust.",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word to user example by another user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"A user with such a token does not have access rights to an example with this id\");\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "grrhhhhhhhhhh",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "grrhhhhhhhhhh",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{ANOTHER_USER_KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{ANOTHER_USER_KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET word after creating | deleting",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Verification of status code\", function () {\r",
+											"    if(pm.variables.get('WORD')) {    // if True:\r",
+											"\r",
+											"        pm.test(\"200 status code\", function () {\r",
+											"            pm.response.to.have.status(200);\r",
+											"        });\r",
+											"\r",
+											"        pm.test(\"Check word data\", function () {\r",
+											"            var jsonData = pm.response.json();\r",
+											"            pm.expect(jsonData.word_id).to.eql(pm.variables.get('WORD_ID'));\r",
+											"            pm.expect(jsonData.word).to.eql(pm.variables.get('WORD'));\r",
+											"            pm.expect(jsonData.description).to.eql(pm.variables.get('DESCRIPTION'));\r",
+											"            pm.expect(jsonData.example_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"        });\r",
+											"    \r",
+											"    }else {\r",
+											"        pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"        postman.setNextRequest(null)    // finish\r",
+											"    }\r",
+											"\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET word by different key",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"A user with such a token does not have access rights to an word with this id\");\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/word/{{ANOTHER_USER_KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"word",
+										"{{ANOTHER_USER_KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"WORD_ID\", jsonData.word_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"WORD\", jsonData.word\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"DESCRIPTION\", jsonData.description\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty...\n",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "(of knowledge or a skill) impaired by lack of recent practice;\n(of a metal object) affected by rust.\n",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}/api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "*BUG* PUT word by different key",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"A user with such a token does not have access rights to an example with this id\");\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "agrhhhhhhhhhhh",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "agrhhhhhhhhhhh",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}/api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET word after updating",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check word data\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.word_id).to.eql(pm.variables.get('WORD_ID'));\r",
+											"    pm.expect(jsonData.word).to.eql(pm.variables.get('WORD'));\r",
+											"    pm.expect(jsonData.description).to.eql(pm.variables.get('DESCRIPTION'));\r",
+											"    pm.expect(jsonData.example_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "*BUG* DEL word by another user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"            pm.response.to.have.status(404);\r",
+											"        });\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"A user with such a token does not have access rights to an example with this id\");\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DEL word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Delete message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Your data has been successfully deleted\");\r",
+											"    pm.environment.set(\"WORD\", null); // change variavle \r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET example after word delete",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"404 status code\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"postman.setNextRequest('GET word after creating | deleting')"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "TCP-2 - POST WRONG DATA",
+					"item": [
+						{
+							"name": "POST example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"EX_ID\", jsonData.ex_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"EXAMPLE\", jsonData.example\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"USER_ID\", jsonData.user_id\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/example/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"example",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"WORD_ID\", jsonData.word_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"WORD\", jsonData.word\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"DESCRIPTION\", jsonData.description\r",
+											"        );\r",
+											"      \r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "rusty",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "(of knowledge or a skill) impaired by lack of recent practice.\n(of a metal object) affected by rust.",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word wrong lenght couple min",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for word or description. You have 0, min 1 - max 135(word) | max 400(description)\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										},
+										{
+											"key": "",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word wrong lenght min word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for word or description. You have 0, min 1 - max 135(word) | max 400(description)\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "grhhhh",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word wrong lenght min description",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for word or description. You have 0, min 1 - max 135(word) | max 400(description)\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "grhhhh",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										},
+										{
+											"key": "",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word wrong lenght couple max",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for word or description. You have 401, min 1 - max 135(word) | max 400(description)\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										},
+										{
+											"key": "",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word wrong lenght max description",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for word or description. You have 401, min 1 - max 135(word) | max 400(description)\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "grhhhhhhhhhhh",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										},
+										{
+											"key": "",
+											"value": "",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word wrong lenght max word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for word or description. You have 136, min 1 - max 135(word) | max 400(description)\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "grhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhgrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhgrhhhhhhhhhhhgrhhhhhhhhhhhhhhhhhhhhgrhhhhhhhhhhhhhhhhhhhhhhhggggggg",
+											"description": "136",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggg\n",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										},
+										{
+											"key": "",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DEL example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Delete message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Your data has been successfully deleted\");\r",
+											"    pm.environment.set(\"WORD\", null); // change variavle \r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "TCP-2 - PUT WRONG DATA",
+					"item": [
+						{
+							"name": "POST example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"EX_ID\", jsonData.ex_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"EXAMPLE\", jsonData.example\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"USER_ID\", jsonData.user_id\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/example/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"example",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"WORD_ID\", jsonData.word_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"WORD\", jsonData.word\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"DESCRIPTION\", jsonData.description\r",
+											"        );\r",
+											"      \r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "rusty",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "(of knowledge or a skill) impaired by lack of recent practice.\n(of a metal object) affected by rust.",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET word after creating",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"200 status code\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check word data\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.word_id).to.eql(pm.variables.get('WORD_ID'));\r",
+											"    pm.expect(jsonData.word).to.eql(pm.variables.get('WORD'));\r",
+											"    pm.expect(jsonData.description).to.eql(pm.variables.get('DESCRIPTION'));\r",
+											"    pm.expect(jsonData.example_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word wrong lenght couple min",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for word or description. You have 0, min 1 - max 135(word) | max 400(description)\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										},
+										{
+											"key": "",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word wrong lenght min word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for word or description. You have 0, min 1 - max 135(word) | max 400(description)\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "grhhhh",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word wrong lenght min description",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for word or description. You have 0, min 1 - max 135(word) | max 400(description)\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "grhhhh",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										},
+										{
+											"key": "",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word wrong lenght couple max",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for word or description. You have 401, min 1 - max 135(word) | max 400(description)\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										},
+										{
+											"key": "",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word wrong lenght max description",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for word or description. You have 401, min 1 - max 135(word) | max 400(description)\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "grhhhhhhhhhhh",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										},
+										{
+											"key": "",
+											"value": "",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word wrong lenght max word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.eql(\"Not right length for word or description. You have 136, min 1 - max 135(word) | max 400(description)\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "grhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhgrhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhgrhhhhhhhhhhhgrhhhhhhhhhhhhhhhhhhhhgrhhhhhhhhhhhhhhhhhhhhhhhggggggg",
+											"description": "136",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggg\n",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										},
+										{
+											"key": "",
+											"value": "",
+											"type": "text",
+											"disabled": true
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DEL example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Delete message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Your data has been successfully deleted\");\r",
+											"    pm.environment.set(\"WORD\", null); // change variavle \r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/example/{{KEY}}/{{EX_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"example",
+										"{{KEY}}",
+										"{{EX_ID}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "TCP-2 - POST DUPLICATE",
+					"item": [
+						{
+							"name": "POST example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"EX_ID\", jsonData.ex_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"EXAMPLE\", jsonData.example\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"USER_ID\", jsonData.user_id\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/example/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"example",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"WORD_ID\", jsonData.word_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"WORD\", jsonData.word\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"DESCRIPTION\", jsonData.description\r",
+											"        );\r",
+											"      \r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "rusty",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "(of knowledge or a skill) impaired by lack of recent practice.\n(of a metal object) affected by rust.",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET word after creating",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"200 status code\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check word data\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.word_id).to.eql(pm.variables.get('WORD_ID'));\r",
+											"    pm.expect(jsonData.word).to.eql(pm.variables.get('WORD'));\r",
+											"    pm.expect(jsonData.description).to.eql(pm.variables.get('DESCRIPTION'));\r",
+											"    pm.expect(jsonData.example_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word duplicate",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check the new word is no created\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.word_id).to.eql(pm.variables.get('WORD_ID'));\r",
+											"    pm.expect(jsonData.word).to.eql(pm.variables.get('WORD'));\r",
+											"    pm.expect(jsonData.description).to.eql(pm.variables.get('DESCRIPTION'));\r",
+											"    pm.expect(jsonData.example_id).to.eql(pm.variables.get('EX_ID'));\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "rusty",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "(of knowledge or a skill) impaired by lack of recent practice.\n(of a metal object) affected by rust.",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DEL word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Delete message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Your data has been successfully deleted\");\r",
+											"    pm.environment.set(\"WORD\", null); // change variavle \r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "[TC:WS00] WORDS",
+			"item": [
+				{
+					"name": "TCP-1 - CHANGING  AFTER A NEW WORD IS ADDED AND REMOVED",
+					"item": [
+						{
+							"name": "GET words",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/words/{{KEY}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"words",
+										"{{KEY}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST example",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"EX_ID\", jsonData.ex_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"EXAMPLE\", jsonData.example\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"USER_ID\", jsonData.user_id\r",
+											"        );\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "example",
+											"value": "Sorry Benson, remember how I told you I could drive stick? Well, I am a little rusty",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/example/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"example",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET words after example aded",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"\r",
+											"pm.test(\"Check example data from words responce\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(parseInt(jsonData.null.example_id)).to.eql(pm.variables.get('EX_ID'));\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/words/{{KEY}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"words",
+										"{{KEY}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"WORD_ID\", jsonData.word_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"WORD\", jsonData.word\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"DESCRIPTION\", jsonData.description\r",
+											"        );\r",
+											"      \r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "rusty",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "(of knowledge or a skill) impaired by lack of recent practice.\n(of a metal object) affected by rust.",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/0",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"0"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET words after word aded",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response time is less than 300ms\", function () {\r",
+											"    pm.expect(pm.response.responseTime).to.be.below(300);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check correctness of word data from words data\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData[pm.variables.get('WORD_ID')]).to.eql({\r",
+											"        \"word\": pm.variables.get('WORD'),\r",
+											"        \"description\": pm.variables.get('DESCRIPTION'),\r",
+											"        \"example_id\": String(pm.variables.get('EX_ID')),\r",
+											"        \"example\": pm.variables.get('EXAMPLE')\r",
+											"    });\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/words/{{KEY}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"words",
+										"{{KEY}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Set variable\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log('Set variable from: ', jsonData)\r",
+											"    pm.environment.set(\r",
+											"        \"WORD_ID\", jsonData.word_id\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"WORD\", jsonData.word\r",
+											"        );\r",
+											"    pm.environment.set(\r",
+											"        \"DESCRIPTION\", jsonData.description\r",
+											"        );\r",
+											"      \r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "word",
+											"value": "rusty ",
+											"description": "add space",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "(of knowledge or a skill) impaired by lack of recent practice.\n(of a metal object) affected by rust. ",
+											"description": "add space",
+											"type": "text"
+										},
+										{
+											"key": "ex_id",
+											"value": "{{EX_ID}}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{URL}}//api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"",
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET words after word edit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response time is less than 300ms\", function () {\r",
+											"    pm.expect(pm.response.responseTime).to.be.below(300);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check correctness of word data from words data\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData[pm.variables.get('WORD_ID')]).to.eql({\r",
+											"        \"word\": pm.variables.get('WORD'),\r",
+											"        \"description\": pm.variables.get('DESCRIPTION'),\r",
+											"        \"example_id\": String(pm.variables.get('EX_ID')),\r",
+											"        \"example\": pm.variables.get('EXAMPLE')\r",
+											"    });\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/words/{{KEY}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"words",
+										"{{KEY}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DEL word",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Delete status\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.success).to.eql(\"Your data has been successfully deleted\");\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/word/{{KEY}}/{{WORD_ID}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"word",
+										"{{KEY}}",
+										"{{WORD_ID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET words after word delete",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Response time is less than 300ms\", function () {\r",
+											"    pm.expect(pm.response.responseTime).to.be.below(300);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check correctness of word data from words data\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    console.log(jsonData[pm.variables.get('WORD_ID')])\r",
+											"    pm.expect(jsonData[pm.variables.get('WORD_ID')]).to.eql(undefined);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/words/{{KEY}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"words",
+										"{{KEY}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "[TC:LS00] LESSON",
+			"item": [
+				{
+					"name": "TCP-1 - TEST LESSON LENGHT",
+					"item": [
+						{
+							"name": "GET lesson",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Check length is 15\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(parseInt(jsonData.length)).to.eql(15);\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/lesson/{{KEY}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"lesson",
+										"{{KEY}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET lesson not enough words",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Error message\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.error).to.include(\"Not enough words for lesson. You have \");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{URL}}/api/lesson/{{ANOTHER_USER_KEY}}",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"api",
+										"lesson",
+										"{{ANOTHER_USER_KEY}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "words",
+			"value": ""
+		}
+	]
+}
