@@ -166,9 +166,11 @@ async def admin_tell_users(message: types.Message, state: FSMContext):
     await state.reset_state(with_data=False)
     db_worker.pending_rollback(username=message.from_user.username)
 
-    speach = text(
-            bold(fr'{message.text}')
-        )
+    speach = fr'{" ".join(message.text.split()[1:])}'
+    if not speach:
+        await message.answer(r'Message to users must be non-empty. Use /admintell <your message to all users>')
+        return
+    answer = text(bold(speach))
     users = db_worker.get_users()
     logger.info(f'[{message.from_user.username}]: \nUsers count: "{len(users)}" \nSpeach to send "{speach}"')
 
@@ -176,13 +178,13 @@ async def admin_tell_users(message: types.Message, state: FSMContext):
         try:
             await message.bot.send_message(
                 chat_id=user.tg_id,
-                text=speach,
+                text=answer,
                 parse_mode=ParseMode.MARKDOWN_V2
             )
         except Exception as e:
-            logger.error(f'[{user.username}]: Houston, we have got a problem {e}')
+            logger.error(f'[{user.nickname}]: Houston, we have got a problem {e}')
         finally:
-            logger.error(f'[{user.username}]: Notified successfully')
+            logger.error(f'[{user.nickname}]: Notified successfully')
 
     logger.info(f'[{message.from_user.username}]: Told users.')
 
