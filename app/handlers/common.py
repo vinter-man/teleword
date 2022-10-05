@@ -35,9 +35,12 @@ async def start_cmd(message: types.Message, state: FSMContext):
     if not db_worker.is_user(str(message.from_user.id)):
         logger.info(f'[{message.from_user.username}]: adding new user to "users" table...')
         await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)
+        sql_nickname = message.from_user.username
+        if not sql_nickname:
+            sql_nickname = f'user{message.from_user.id}'
         now = str(datetime.date.today())
         db_worker.add_user(tg_id=str(message.from_user.id),
-                           nickname=message.from_user.username,
+                           nickname=sql_nickname,
                            lang_code=message.from_user.language_code,
                            shock_mode=0,
                            points=0,
@@ -170,7 +173,6 @@ async def admin_tell_users(message: types.Message, state: FSMContext):
     if not speach:
         await message.answer(r'Message to users must be non-empty. Use /admintell <your message to all users>')
         return
-    answer = text(bold(speach))
     users = db_worker.get_users()
     logger.info(f'[{message.from_user.username}]: \nUsers count: "{len(users)}" \nSpeach to send "{speach}"')
 
@@ -178,14 +180,14 @@ async def admin_tell_users(message: types.Message, state: FSMContext):
         try:
             await message.bot.send_message(
                 chat_id=user.tg_id,
-                text=answer,
-                parse_mode=ParseMode.MARKDOWN_V2
+                text=speach,
             )
         except Exception as e:
             logger.error(f'[{user.nickname}]: Houston, we have got a problem {e}')
         finally:
             logger.error(f'[{user.nickname}]: Notified successfully')
 
+    logger.info(f'[{message.from_user.username}]: Told users.')
     logger.info(f'[{message.from_user.username}]: Told users.')
 
 
