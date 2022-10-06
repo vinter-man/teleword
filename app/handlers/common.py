@@ -38,6 +38,7 @@ async def start_cmd(message: types.Message, state: FSMContext):
         sql_nickname = message.from_user.username
         if not sql_nickname:
             sql_nickname = f'user{message.from_user.id}'
+            logger.warning(f'[{message.from_user.username}]: no username use {sql_nickname} instead')
         now = str(datetime.date.today())
         db_worker.add_user(tg_id=str(message.from_user.id),
                            nickname=sql_nickname,

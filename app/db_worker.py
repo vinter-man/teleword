@@ -387,7 +387,7 @@ def get_words_data(user_tg_id: str) -> list:
             'word_id': i.word_id,
             'is_main': False
         }
-        for i in sql_query
+        for i in sql_query if i.word_id
     ]
     logger.info(f'[{user_tg_id}]: Successes return words data')
     return words
