@@ -498,13 +498,11 @@ def word_count(user_tg_id: str) -> int:
     :param user_tg_id: string representation of telegram user id
     :return: integer value user's word count
     """
-    return (session.query(Users, sqlalchemy.func.count(UsersExamples.ex_id))
-                .outerjoin(UsersExamples)
-                .group_by(Users)
-                .outerjoin(UsersExamplesWords)
-                .group_by(Users)
-                .filter(Users.tg_id == user_tg_id)
-            ).one()[1]
+    return list(engine.execute(
+        "SELECT count(w.word_id) count FROM users u "
+        "LEFT JOIN examples e ON e.user_id = u.user_id "
+        "LEFT JOIN words w ON w.example_id = e.ex_id "
+        "WHERE u.tg_id = '{}';".format(user_tg_id)))[0][0]
 
 
 def get_user_stat(user_tg_id: str, limit: int = 7) -> list:
