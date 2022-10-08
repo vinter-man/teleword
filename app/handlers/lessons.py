@@ -12,6 +12,7 @@ from aiogram.dispatcher.filters import Text
 
 from .. import db_worker
 from ..db_worker import MinLenError
+import config
 
 
 ########################################################################################################################
@@ -60,6 +61,17 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
                 emojize(":cop: You need at least"), bold("15"), "words to start a lesson, you have only",
                 bold(f"{e}."))
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+        answer = text(
+                emojize(":hmm:"), r"The bot has 15 initial words, you can add them by clicking on the button below, "
+                                  r"and then manually delete them when you no longer need them\.",
+                bold(f"{e}."))
+        inl_keyboard = types.InlineKeyboardMarkup()
+        inl_buttons = [
+            types.InlineKeyboardButton(text=text(emojize(':genie: Add')), callback_data='call_add_init_words'),
+            types.InlineKeyboardButton(text=text(emojize(':no_good: I do not need it')), callback_data='call_cancel')]
+        inl_keyboard.add(*inl_buttons)
+
+        await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
         return
     except Exception as e:
         logger.error(f'[{username}]: Houston, we have got a problem {e}')
@@ -439,6 +451,56 @@ async def cb_get_call_to_lesson(call: types.CallbackQuery, state: FSMContext):
     await lesson_cmd(message=call.message, state=state)
 
 
+async def cb_get_call_to_add_init_words(call: types.CallbackQuery, state: FSMContext):
+    """
+    independent action
+        adds words from the config dictionary to the user
+    """
+    username = call.from_user.username
+    logger.info(f'[{username}]: Send call with "add_init_words" command')
+    await state.reset_state(with_data=False)
+
+    answer = text(
+        emojize(r':package: I add words, need a little time\.\.\.'), '\n')
+    remove_keyboard = types.ReplyKeyboardRemove()
+
+    await call.message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
+    await call.message.bot.send_chat_action(call.from_user.id, ChatActions.TYPING)
+
+    db_worker.pending_rollback(username)
+
+    try:
+        for word_data in config.config.INIT_WORDS:
+            user_example = db_worker.add_example(
+                example_text=word_data["example"],
+                user_tg_id=str(call.message.chat.id)
+            )
+            user_word = db_worker.add_word(
+                word=word_data["word"],
+                description=word_data["description"],
+                category=word_data["category"],
+                rating=0,
+                example=user_example,
+            )
+            logger.info(f'[{username}]: >>> {word_data["word"]}')
+    except Exception as e:
+        logger.error(f'[{username}]: Houston, we have got a problem {e}')
+        answer = text(
+                emojize(":oncoming_police_car:"), r"There was a big trouble when add your initial words\, "
+                                                              r"please try again and then write to the administrator\.")
+        await call.message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+        return
+
+    answer = text(
+        emojize(r':ski: Done, now you have 15 starting words'), '\n')
+
+    await call.message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+    await call.message.delete_reply_markup()
+    await call.answer(show_alert=False)
+
+    logger.info(f'[{username}]: Add init words success')
+
+
 ########################################################################################################################
 def register_lesson_handlers(dp: Dispatcher):
     """
@@ -462,3 +524,10 @@ def register_lesson_handlers(dp: Dispatcher):
         Text(equals='call_lesson'),
         state=ConductLesson.waiting_for_next_move
     )
+
+    dp.register_callback_query_handler(
+        cb_get_call_to_add_init_words,
+        Text(equals='call_add_init_words'),
+        state='*'
+    )
+
