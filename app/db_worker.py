@@ -557,6 +557,7 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
     :return: path with name of created file
     """
     # sql_filter_key:
+    logger.info(f'[{user_tg_id}]: Sql query {sql_filter_key}...')
     if sql_filter_key == 'most important words':
         sql_main = " SELECT " \
                    " words.word_id, words.word, words.description, examples.ex_id, examples.example" \
@@ -582,11 +583,13 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
     else:
         sql_query = engine.execute(sql_main + ' ORDER BY words.word_id ASC')
 
+    logger.info(f'[{user_tg_id}]: Sql query success >>> {type(sql_query)}({len(list(sql_query))})')
     # file_type:
     file_path += '/'
     if not os.path.isdir(file_path):
         os.mkdir(file_path)
     file_name = str(file_path + 'words' + user_tg_id + '.' + file_type)
+    logger.info(f'[{user_tg_id}]: Create file {file_name}')
     file = open(file_name, 'w', encoding='utf-8')
     # xlsx
     if file_name.endswith('xlsx'):
@@ -602,6 +605,7 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
         sheet.column_dimensions['G'].width = 150
         workbook.remove(new_sheet)
         # write data
+        number = 2
         for number, i in enumerate(sql_query, start=2):
             if number == 2:
                 sheet[f'B{number}'] = "word id"
@@ -695,6 +699,8 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
     elif file_name.endswith('csv'):
         writer = csv.writer(file, quoting=csv.QUOTE_ALL)
         word_data = [(i.word_id, i.word, i.description, i.ex_id, i.example) for i in sql_query]
+        if not word_data:
+            word_data = [('', '', '', '', '')]
         writer.writerows(word_data)
     # unknown
     else:
