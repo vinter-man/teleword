@@ -129,8 +129,9 @@ async def admin_panel_cmd(message: types.Message, state: FSMContext):
     await state.reset_state(with_data=False)
 
     txt = text(
-                "/admin", italic(" >>> show admin panel"),
-                "/admin_show_bl", italic(" >>> send current black list"),
+                "/admin", italic(" >>> show admin panel"), '\n',
+                "/admin_show_bl", italic(" >>> send current black list"), '\n',
+                "/admintell", italic(" >>> sends to all users everything written after the command"), '\n',
     )
     remove_keyboard = types.ReplyKeyboardRemove()
     await message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
@@ -159,7 +160,7 @@ async def admin_show_bl_cmd(message: types.Message, state: FSMContext):
     await message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2)
 
 
-async def admin_tell_users(message: types.Message, state: FSMContext):
+async def admin_tell_users_cmd(message: types.Message, state: FSMContext):
     """
     independent action
         Receives a command and a cue
@@ -203,4 +204,5 @@ def register_handlers_common(dp: Dispatcher, admin_id: int):
     dp.register_message_handler(help_cmd, commands=['help'], state='*')
     dp.register_message_handler(cancel_cmd, commands=['cancel', 'end', 'finish'], state='*')
     dp.register_message_handler(admin_panel_cmd, IDFilter(user_id=admin_id), commands=['admin'], state='*')
-    dp.register_message_handler(admin_tell_users, IDFilter(user_id=admin_id), commands=['admintell'], state='*')
+    dp.register_message_handler(admin_show_bl_cmd, IDFilter(user_id=admin_id), commands=['admin'], state='*')
+    dp.register_message_handler(admin_tell_users_cmd, IDFilter(user_id=admin_id), commands=['admintell'], state='*')
