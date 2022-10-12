@@ -131,7 +131,7 @@ async def admin_panel_cmd(message: types.Message, state: FSMContext):
     txt = text(
                 "/admin", italic(" >>> show admin panel"), '\n',
                 "/admin_show_bl", italic(" >>> send current black list"), '\n',
-                "/admintell", italic(" >>> sends to all users everything written after the command"), '\n',
+                "/admintell", italic(" >>> sends to all users everything written after the command")
     )
     remove_keyboard = types.ReplyKeyboardRemove()
     await message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
@@ -189,7 +189,6 @@ async def admin_tell_users_cmd(message: types.Message, state: FSMContext):
         finally:
             logger.error(f'[{user.nickname}]: Notified successfully')
 
-    logger.info(f'[{message.from_user.username}]: Told users.')
     logger.info(f'[{message.from_user.username}]: Told users.')
 
 
