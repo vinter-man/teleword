@@ -111,6 +111,7 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
         task_number=0,
         current_task=None,
         lesson_stats=[],
+        main_word_stat=None,
     )
 
     logger.info(f'[{username}]: Transfer user to the lesson')
