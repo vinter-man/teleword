@@ -558,22 +558,23 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
     """
     # sql_filter_key:
     logger.info(f'[{user_tg_id}]: Sql query {sql_filter_key}...')
-    if sql_filter_key == 'most important words':
-        sql_main = " SELECT " \
-                   " words.word_id, words.word, words.description, examples.ex_id, examples.example" \
-                   " FROM users" \
-                   " LEFT JOIN examples ON examples.user_id = users.user_id" \
-                   " LEFT JOIN words ON words.example_id = examples.ex_id" \
-                   " WHERE users.tg_id = '{}' AND words.rating > (SELECT AVG(rating) FROM words)".format(user_tg_id)
+
+    sql_cmd = """ 
+        SELECT words.word_id, words.word, words.description, examples.ex_id, examples.example
+        FROM users
+        LEFT JOIN examples ON examples.user_id = users.user_id
+        LEFT JOIN words ON words.example_id = examples.ex_id
+        WHERE users.tg_id = '{0}'
+    """.format(user_tg_id)
+
     # elif sql_filter_key == '...':    # * space for expansion
-    #     pass
+    if sql_filter_key == 'most important words':
+        sql_miw = """
+            AND words.rating > (SELECT AVG(rating) FROM words WHERE users.tg_id = '{0}')
+        """.format(user_tg_id)
+        sql_main = sql_cmd + sql_miw
     else:
-        sql_main = " SELECT " \
-                   " words.word_id, words.word, words.description, examples.ex_id, examples.example" \
-                   " FROM users" \
-                   " LEFT JOIN examples ON examples.user_id = users.user_id" \
-                   " LEFT JOIN words ON words.example_id = examples.ex_id" \
-                   " WHERE users.tg_id = '{}'".format(user_tg_id)
+        sql_main = sql_cmd
 
     # sql_sort_key:
     if sql_sort_key == 'by importance':
@@ -583,7 +584,7 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
     else:
         sql_query = engine.execute(sql_main + ' ORDER BY words.word_id ASC')
 
-    logger.info(f'[{user_tg_id}]: Sql query success >>> {type(sql_query)}({len(list(sql_query))})')
+    logger.info(f'[{user_tg_id}]: Sql query success >>> {type(sql_query)}({len(list(sql_query))})')    # class and count
     # file_type:
     file_path += '/'
     if not os.path.isdir(file_path):
