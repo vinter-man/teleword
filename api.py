@@ -63,7 +63,7 @@ class Words(Resource):     # Resource - restfull king
             )
         except Exception as e:
             logger.error(f'[{sql_user.nickname}] Can`t made data file "{e}"')
-            return {'error': 'Failed to collect words from data base for query'}, 404
+            return {'error': 'Failed to collect words from data base for query'}, 500
         else:
             logger.info(f'[{sql_user.nickname}] WORDS DATA IN "{data_path}"')
 
@@ -72,7 +72,7 @@ class Words(Resource):     # Resource - restfull king
             data = json.load(file)
         except Exception as e:
             logger.error(f'[{sql_user.nickname}] Can`t load json file "{e}"')
-            return {'error': 'Failed to collect words from temporary file for query'}, 404
+            return {'error': 'Failed to collect words from temporary file for query'}, 500
         else:
             file.close()
             os.remove(data_path)
@@ -105,7 +105,7 @@ class Lesson(Resource):
             return {'error': f'Not enough words for lesson. You have {e}, minimum 15'}, 404
         except Exception as e:
             logger.error(f'[{sql_user.nickname}] Can`t make data file "{e}"')
-            return {'error': 'Failed to collect lesson from data base for query'}, 404
+            return {'error': 'Failed to collect lesson from data base for query'}, 500
         else:
             logger.info(f'[{sql_user.nickname}] LESSON DATA ({len(data)})')
             logger.info(f'[{sql_user.nickname}] SUCCESS GET LESSON')
@@ -298,7 +298,7 @@ class Example(Resource):
                 raise RuntimeError('Data was not successfully deleted from sql table')
         except RuntimeError as e:
             logger.error(f'[{sql_user.nickname}] Can`t delete data from sql "{e}"')
-            return {'error': 'Data was not successfully deleted from table, problem on our end, please try again'}, 404
+            return {'error': 'Data was not successfully deleted from table, problem on our end, please try again'}, 500
         except Exception as e:
             logger.error(f'[{sql_user.nickname}] Can`t delete data from sql "{e}"')
             return {'error': 'Failed to process your example object - check the correctness of the data id'}, 404
@@ -404,7 +404,7 @@ class Word(Resource):
             )
         except Exception as e:
             logger.error(f'[{sql_user.nickname}] Can`t write data to sql "{e}"')
-            return {'error': 'There was a problem on our side, please try again later'}, 404
+            return {'error': 'There was a problem on our side, please try again later'}, 500
         else:
             logger.info(f'[{sql_user.nickname}] SUCCESS POST WORD')
             return {
@@ -428,6 +428,7 @@ class Word(Resource):
         else:
             logger.info(f'[{sql_user.nickname}] PUT WORD')
 
+        flag = 'word or description'
         try:
             sql_word = db_worker.get_word(word_id=word_id)
             sql_example = db_worker.get_example(example_id=int(sql_word.example_id))
@@ -439,12 +440,14 @@ class Word(Resource):
             if not sql_example.user_id == sql_user.user_id:
                 raise AccessError(f'Data owner: {sql_example.user_id}, Query owner: {sql_user.user_id}')
             if word_len > 135 or word_len < 1:
+                flag = 'word'
                 raise LengthError(f"{word_len}")
             if description_len > 400 or description_len < 1:
+                flag = 'description'
                 raise LengthError(f"{description_len}")
         except LengthError as e:
             logger.error(f'[{sql_user.nickname}] Can`t write data. Wrong length "{e}"')
-            return {'error': f'Not right length for word or description. You have {e},'
+            return {'error': f'Not right length for {flag}. You have {e},'
                                                                  f' min 1 - max 135(word) | max 400(description)'}, 404
         except AccessError as e:
             logger.error(f'[{sql_user.nickname}] Can`t write data. Access denied "{e}"')
@@ -523,7 +526,7 @@ class Word(Resource):
                 raise RuntimeError('Data was not successfully deleted from sql table')
         except RuntimeError as e:
             logger.error(f'[{sql_user.nickname}] Can`t delete data from sql "{e}"')
-            return {'error': 'Data was not successfully deleted from table, problem on our end, please try again'}, 404
+            return {'error': 'Data was not successfully deleted from table, problem on our end, please try again'}, 500
         except Exception as e:
             logger.error(f'[{sql_user.nickname}] Can`t delete data from sql "{e}"')
             return {'error': 'Failed to process your word object - check the correctness of the data id'}, 404
