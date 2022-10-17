@@ -170,21 +170,21 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
         await call.message.bot.send_chat_action(call.from_user.id, ChatActions.TYPING)
         success_percentage = int((first_try / 15) * 100)
 
-        # shock mode
-        try:
-            db_worker.change_user_last_using(
-                user_tg_id=str(call.message.chat.id),
-                flag='change'
-            )
-        except Exception as e:
-            logger.error(f'[{username}]: Unknown sql error {e}')
-
         # daily statistics
         try:
             db_worker.add_or_change_day_stat(
                 tg_id=str(call.message.chat.id),
                 first_try=first_try,
                 mistakes=mistakes,
+            )
+        except Exception as e:
+            logger.error(f'[{username}]: Unknown sql error {e}')
+
+        # shock mode
+        try:
+            db_worker.change_user_last_using(
+                user_tg_id=str(call.message.chat.id),
+                flag='change'
             )
         except Exception as e:
             logger.error(f'[{username}]: Unknown sql error {e}')

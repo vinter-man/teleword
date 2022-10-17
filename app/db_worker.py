@@ -178,22 +178,35 @@ def change_user_last_using(user_tg_id: str, flag: str = 'change'):
     :param flag: string 'change' / 'check'
     """
 
-    user = session.query(Users).filter_by(tg_id=user_tg_id).one()
+    user = get_user(tg_id=user_tg_id)
     user.current_use_time = str(datetime.date.today())
 
     difference = datetime.date.fromisoformat(user.current_use_time) - datetime.date.fromisoformat(user.last_use_time)
     difference = int(difference.days)
 
-    if not difference or (difference == 1 and flag == 'check'):
-        logger.info(f'[{user_tg_id}] No different user using time')
-    elif difference == 1 and flag == 'change':
-        logger.info(f'[{user_tg_id}]: Shock_mode +1 day')
-        user.shock_mode += 1
-        user.last_use_time = user.current_use_time
+    today_user_stat: UsersStatistics = user.stats[-1]
+
+    if difference:
+        if difference == 1 and today_user_stat.total:
+            logger.info(f'[{user_tg_id}]: Shock_mode +1 day')
+            user.shock_mode += 1
+            user.last_use_time = user.current_use_time
+        elif difference == 1 and not today_user_stat.total:
+            pass
+        else:
+            if flag == 'change':
+                logger.info(f'[{user_tg_id}]: Shock_mode first day')
+                user.shock_mode = 1
+                user.last_use_time = user.current_use_time
+            else:
+                logger.info(f'[{user_tg_id}]: Shock_mode finish')
+                user.shock_mode = 0
+                user.last_use_time = user.current_use_time
     else:
-        logger.info(f'[{user_tg_id}]: Shock_mode is finish')
-        user.shock_mode = 0
-        user.last_use_time = user.current_use_time
+        if today_user_stat.total and not user.shock_mode:
+            logger.info(f'[{user_tg_id}]: Shock_mode first day')
+            user.shock_mode = 1
+            user.last_use_time = user.current_use_time
 
     session.add(user)
     session.commit()
