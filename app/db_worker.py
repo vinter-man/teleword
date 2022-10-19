@@ -184,6 +184,13 @@ def change_user_last_using(user_tg_id: str, flag: str = 'change'):
     difference = datetime.date.fromisoformat(user.current_use_time) - datetime.date.fromisoformat(user.last_use_time)
     difference = int(difference.days)
 
+    add_or_change_day_stat(
+        tg_id=str(user_tg_id),
+        first_try=0,
+        mistakes=0,
+        points=0
+    )
+
     today_user_stat: UsersStatistics = user.stats[-1]
 
     if difference:
