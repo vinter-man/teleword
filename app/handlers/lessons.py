@@ -62,7 +62,7 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
                 bold(f"{e}."))
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         answer = text(
-                emojize(":hmm:"), r"The bot has 15 initial words, you can add them by clicking on the button below, "
+                emojize(":thinking_face:"), r"The bot has 15 initial words, you can add them by clicking on the button below, "
                                   r"and then manually delete them when you no longer need them\.",
                 bold(f"{e}."))
         inl_keyboard = types.InlineKeyboardMarkup()
