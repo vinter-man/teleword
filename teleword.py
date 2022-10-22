@@ -3,8 +3,9 @@ import sys
 import logging
 import subprocess
 import time
+import requests
 
-from config.config import PYTHON_PATH
+from config.config import PYTHON_PATH, ADMIN_API_KEY
 from app.db_worker import is_connection_alive
 
 
@@ -23,6 +24,7 @@ def status_checker(processes: list):
     Resurrects all processes from the processes list
     :param processes: List of multiprocessing.Process processes
     """
+    h = 0
     while True:
 
         for process in processes:
@@ -32,8 +34,6 @@ def status_checker(processes: list):
                     process.start()
                 except Exception as e:
                     logger.error(f'[{process.name}] Failed to reanimate the process {process.pid} {e}. Going to sleep')
-            else:
-                logger.info(f'[{process.name}] Process {process.pid} is alive. Going to sleep')
 
         if not is_connection_alive():
             for process in processes:
@@ -41,7 +41,19 @@ def status_checker(processes: list):
                 process.join()
                 process.start()
 
-        time.sleep(900)
+        try:
+            r = requests.get(f'http://localhost/api/lesson/{ADMIN_API_KEY}')
+            if r.status_code != 200:
+                raise ConnectionError(f'{r.status_code, r.json(), r.text}')
+        except Exception as e:
+            logger.error(f'[{h}] Failed to make request \n\n{e}\n\n I am trying to resurrect...')
+            for process in processes:
+                process.stop()
+                process.join()
+                process.start()
+
+        h += 1
+        time.sleep(3)
 
 
 ########################################################################################################################
