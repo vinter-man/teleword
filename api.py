@@ -46,6 +46,7 @@ class Words(Resource):     # Resource - restfull king
         :param token: string user token from db table apikeys
         """
         try:
+            db_worker.pending_rollback(token)
             sql_user = db_worker.get_user_by_api_key(token=token)
         except Exception as e:
             logger.warning(f'[{token}] Can`t find user id "{e}"')
@@ -91,6 +92,7 @@ class Lesson(Resource):
         :param token: string user token from db table apikeys
         """
         try:
+            db_worker.pending_rollback(token)
             sql_user = db_worker.get_user_by_api_key(token=token)
         except Exception as e:
             logger.warning(f'[{token}] Can`t find user id "{e}"')
