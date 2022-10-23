@@ -112,8 +112,39 @@ async def help_cmd(message: types.Message, state: FSMContext):
         emojize(':gem: '), italic('View admin commands:'), '\n',
         emojize(r'\(does not work if you are not an admin :man_genie:\)'), '\n',
         r'/admin \- shows the admin panel', '\n',
+        '\n',
+        emojize(':watch: '), italic('Show bot time:'), '\n',
+        r'/time /clock /now \- current time of the bot and time until the end of the day', '\n',
         sep=''
        )
+    remove_keyboard = types.ReplyKeyboardRemove()
+    await message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
+
+
+async def time_cmd(message: types.Message, state: FSMContext):
+    """
+    independent action
+        reset state
+        show  the user the internal time of the bot
+             and how much time is left until the end of the day
+    """
+    logger.info(f'[{message.from_user.username}]: Use time command')
+    current_time = datetime.datetime.today().strftime("%a, %H:%M")
+    current_date = datetime.datetime.today().strftime('%d.%m.%Y')
+    yesterday = datetime.date.today() + datetime.timedelta(days=1)
+    yesterday = datetime.datetime(year=yesterday.year, month=yesterday.month, day=yesterday.day)
+    time_left = yesterday - datetime.datetime.today()
+    hours = str(time_left).split(':')[0]
+    minutes = str(time_left).split(':')[1]
+    await state.reset_state(with_data=False)
+    txt = text(
+        emojize(':stopwatch:'), r'Time\: ', bold(f'{current_time}'), '\n',
+        '\n',
+        emojize(':calendar:'), r'Date\: ', bold(f'{current_date}'), '\n',
+        '\n',
+        emojize(':hourglass:'), r'Until the end of the day lef\: ', bold(f'{hours} h {minutes} min'), '\n',
+        '\n',
+    )
     remove_keyboard = types.ReplyKeyboardRemove()
     await message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
 
@@ -202,6 +233,7 @@ def register_handlers_common(dp: Dispatcher, admin_id: int):
     dp.register_message_handler(start_cmd, commands=['start'], state='*')
     dp.register_message_handler(help_cmd, commands=['help'], state='*')
     dp.register_message_handler(cancel_cmd, commands=['cancel', 'end', 'finish'], state='*')
+    dp.register_message_handler(time_cmd, commands=['time', 'now', 'clock'], state='*')
     dp.register_message_handler(admin_panel_cmd, IDFilter(user_id=admin_id), commands=['admin'], state='*')
     dp.register_message_handler(admin_show_bl_cmd, IDFilter(user_id=admin_id), commands=['admin'], state='*')
     dp.register_message_handler(admin_tell_users_cmd, IDFilter(user_id=admin_id), commands=['admintell'], state='*')

@@ -24,6 +24,7 @@ def status_checker(processes: list):
     Resurrects all processes from the processes list
     :param processes: List of multiprocessing.Process processes
     """
+    time.sleep(15)
     h = 0
     while True:
 
@@ -44,7 +45,8 @@ def status_checker(processes: list):
         try:
             r = requests.get(f'http://localhost/api/lesson/{ADMIN_API_KEY}')
             if r.status_code != 200:
-                raise ConnectionError(f'{r.status_code, r.json(), r.text}')
+                logger.error(f'[{h}] Failed to make request \n\n{r.status_code, r.json(), r.text}\n\n I am trying to resurrect...')
+                raise ConnectionError
         except Exception as e:
             logger.error(f'[{h}] Failed to make request \n\n{e}\n\n I am trying to resurrect...')
             for process in processes:
