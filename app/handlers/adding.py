@@ -244,7 +244,7 @@ async def ms_get_description_write_data_to_sql(message: types.Message, state: FS
            r'Cool\!')
     await message.reply(answer, parse_mode=ParseMode.MARKDOWN_V2)
     answer = text(
-        r'Writing your data to the database \- this may take some time', emojize(':hourglass_flowing_sand:'))
+        r'Sending your data to the database \- this may take some time', emojize(':hourglass_flowing_sand:'))
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
     await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)  # comfortable waiting for the user
 
@@ -282,7 +282,7 @@ async def ms_get_description_write_data_to_sql(message: types.Message, state: FS
 
     # answer with buttons, set next step state
     answer = text(
-           bold('Congratulate'), r'your data have been successfully written\!', '\n',
+           bold('Congratulations!'), r'Your data have been successfully submitted\!', '\n',
            bold('\n\tExample'), ' : ', italic(rf'"{example}"'),
            bold('\n\tWord'), ' : ', italic(fr'{word}'),
            bold('\n\tDescription'), ' : ', italic(fr'{description}'))
