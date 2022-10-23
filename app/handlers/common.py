@@ -86,19 +86,19 @@ async def help_cmd(message: types.Message, state: FSMContext):
         r'Here are the things that I can do\:', '\n',
         '\n',
         emojize(':gear: '), italic('Basic:'), '\n'
-        r'/start \- start of acquaintance with me', '\n',
-        r'/cancel /end /finish \- canceling any action', '\n'
-        r'/help \- a place where everything that I can do is described', '\n'
+        r'/start \-  let\'s start', '\n',
+        r'/cancel /end /finish \- cancel any action', '\n'
+        r'/help \- here you can  find out what my features are', '\n'
         '\n',
-        emojize(':blue_book: '), italic('Adding your words:'), '\n'
-        r'/add \- begins the process of adding a new word', '\n',
+        emojize(':blue_book: '), italic('Add your words:'), '\n'
+        r'/add \- begin the process of adding a new word', '\n',
         '\n',
         emojize(':lower_left_paintbrush: '), italic('Conduct a lesson:'), '\n'
-        r'\(throws an error if you have less than 15 words\)', '\n',
+        r'\(shows  an error  if you have less than 15 words\)', '\n',
         r'/lesson \- start classic lesson', '\n',
         '\n',
         emojize(':bar_chart: '), italic('Show of statistics:'), '\n',
-        r'/statistic \- view your statistics', '\n',
+        r'/statistic \- view your stat', '\n',
         '\n',
         emojize(':mailbox: '), italic('Upload my words:'), '\n',
         r'/data \- send me files according to the given parameters', '\n',
