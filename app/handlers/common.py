@@ -53,7 +53,7 @@ async def start_cmd(message: types.Message, state: FSMContext):
         logger.info(f'[{message.from_user.username}]: New user added to "users" table')
 
     await state.reset_state(with_data=False)
-    txt = text(r"Let's start\!", " I'm waiting from you commands\n\nMore about commands: /help")
+    txt = text(r"Let's start\!", " I'm waiting for you commands\n\nMore commands: /help")
     remove_keyboard = types.ReplyKeyboardRemove()
     await message.answer(txt, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
 
