@@ -86,7 +86,7 @@ async def ms_get_data_type_set_action_choose(message: types.Message, state: FSMC
             italic('You can only work with your own words, descriptions and examples: '),
                                                             bold(f'{" | ".join(possible_answers)}\n'),
             '\n',
-            r'Try it again\, just entering your answer below\.', '\n',
+            r'Try again\, just type in your answer below\.', '\n',
             '\n'
         )
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
@@ -129,7 +129,7 @@ async def ms_get_action_set_enter_data(message: types.Message, state: FSMContext
             italic('You can only edit or delete your data: '),
                                                             bold(f'{" | ".join(possible_answers)}\n'),
             '\n',
-            r'Try it again\, just entering your answer below\.', '\n',
+            r'Try again\, just type in your answer below\.', '\n',
             '\n'
         )
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
@@ -189,7 +189,7 @@ async def ms_get_id_set_action(message: types.Message, state: FSMContext):
             answer = text(
                 emojize(":man_detective:"),
                   rf"We couldn\'t find the right {user_data_type}\, make sure you entered the correct example id", '\n',
-                r'Try it again\, just entering your answer below\.', '\n',
+                r'Try again\, just type in your answer below\.', '\n',
                 '\n')
             await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
             return
@@ -259,7 +259,7 @@ async def ms_get_id_set_action(message: types.Message, state: FSMContext):
             answer = text(
                 emojize(":man_detective:"),
                     rf"We couldn\'t find the right {user_data_type}\, make sure you entered the correct word id", '\n',
-                r'Try it again\, just entering your answer below\.', '\n',
+                r'Try again\, just type in your answer below\.', '\n',
                 '\n')
             await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
             return

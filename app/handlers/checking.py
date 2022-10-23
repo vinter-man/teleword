@@ -83,7 +83,7 @@ async def ms_get_filter_set_order_key_choose(message: types.Message, state: FSMC
             '\n',
             italic('So far we have only the following answers: '), bold(f'{" | ".join(possible_answers)}\n'),
             '\n',
-            r'Try it again\, just entering your answer below\.', '\n',
+            r'Try again\, just type in your answer below\.', '\n',
             '\n'
         )
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
@@ -124,7 +124,7 @@ async def ms_get_order_key_set_file_type_choose(message: types.Message, state: F
             '\n',
             italic('The following sort keys are available: '), bold(f'{" | ".join(possible_answers)}\n'),
             '\n',
-            r'Try it again\, just entering your answer below\.', '\n',
+            r'Try again\, just type in your answer below\.', '\n',
             '\n'
         )
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
