@@ -604,7 +604,7 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
     else:
         sql_query = engine.execute(sql_main + ' ORDER BY words.word_id ASC')
 
-    logger.info(f'[{user_tg_id}]: Sql query success >>> {type(sql_query)}({len(list(sql_query))})')    # class and count
+    logger.info(f'[{user_tg_id}]: Sql query success >>> {type(sql_query)}')
     # file_type:
     file_path += '/'
     if not os.path.isdir(file_path):
