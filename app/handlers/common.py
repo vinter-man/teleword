@@ -86,9 +86,10 @@ async def help_cmd(message: types.Message, state: FSMContext):
         r'Here are the things that I can do\:', '\n',
         '\n',
         emojize(':gear: '), italic('Basic:'), '\n'
+        r'\(commands from this list cancel any action\)', '\n',
         r'/start \-  let\'s start', '\n',
         r'/cancel /end /finish \- cancel any action', '\n'
-        r'/help \- here you can  find out what my features are', '\n'
+        r'/help \- here you can find out what my features are', '\n'
         '\n',
         emojize(':blue_book: '), italic('Add your words:'), '\n'
         r'/add \- begin the process of adding a new word', '\n',
