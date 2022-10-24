@@ -236,5 +236,5 @@ def register_handlers_common(dp: Dispatcher, admin_id: int):
     dp.register_message_handler(cancel_cmd, commands=['cancel', 'end', 'finish'], state='*')
     dp.register_message_handler(time_cmd, commands=['time', 'now', 'clock'], state='*')
     dp.register_message_handler(admin_panel_cmd, IDFilter(user_id=admin_id), commands=['admin'], state='*')
-    dp.register_message_handler(admin_show_bl_cmd, IDFilter(user_id=admin_id), commands=['admin'], state='*')
+    dp.register_message_handler(admin_show_bl_cmd, IDFilter(user_id=admin_id), commands=['admin_show_bl'], state='*')
     dp.register_message_handler(admin_tell_users_cmd, IDFilter(user_id=admin_id), commands=['admintell'], state='*')
