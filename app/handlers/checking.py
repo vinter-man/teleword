@@ -132,7 +132,7 @@ async def ms_get_order_key_set_file_type_choose(message: types.Message, state: F
 
     answer = text(
         r"Excellent\, now the last question in which formats would you most conveniently get your words\:", '\n',
-        bold('1. exel\n'),
+        bold('1. excel\n'),
         bold('2. json\n'),
         bold('3. xml\n'),
         bold('4. csv\n'),

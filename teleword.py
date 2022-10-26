@@ -24,7 +24,7 @@ def status_checker(processes: list):
     Resurrects all processes from the processes list
     :param processes: List of multiprocessing.Process processes
     """
-    time.sleep(15)
+    time.sleep(600)
     h = 0
     while True:
 
@@ -55,7 +55,7 @@ def status_checker(processes: list):
                 process.start()
 
         h += 1
-        time.sleep(3)
+        time.sleep(600)
 
 
 ########################################################################################################################

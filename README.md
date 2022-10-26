@@ -124,7 +124,7 @@ We do not hide anything from users, if they need words with the right data type 
 
 ![data-cmd](img/readme_images/data-cmd.png)
 
-If you are a regular user - my advice to you - enjoy a beautiful  ```1. exel``` file :sunglasses:
+If you are a regular user - my advice to you - enjoy a beautiful  ```1. excel``` file :sunglasses:
 
 ![data-cmd2](img/readme_images/data-cmd2.png)
 

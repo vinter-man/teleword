@@ -325,6 +325,27 @@ async def ms_get_answer_set_task(message: types.Message, state: FSMContext):
         # checking the response to the correctness of the input
         possible_answers = {"a", "b", "c", "d", "1", "2", "3", "4"}
         if answer not in possible_answers:
+            if answer == 'a|b|c|d':
+                answer = text(
+                    bold('Congratulations, you found an Easter egg!'), emojize(':egg:'), '\n',
+                    '\n',
+                    r'I dedicate it to the first person who found it as a bug\.', '\n',
+                    '\n',
+                    r'Toha\, brother\, thank you for always helping me\, never turning away\.'
+                    r' I hope we can get out of the current ugly situation\. I hope we meet more than once and'
+                    r' we will have the heat like on Bora-Bora not this cold and hopelessness',
+                    emojize(':beach_with_umbrella:'), '\n'
+                )
+                await message.answer_photo(
+                    photo=r'img/project_images/temporary/temp261022.png',
+                    caption=answer,
+                    parse_mode=ParseMode.MARKDOWN_V2
+                )
+                await message.bot.send_audio(
+                    chat_id=message.chat.id,
+                    audio='img/project_images/temporary/temp261022.mp3'
+                )
+                return
             logger.info(f'[{username}]: Incorrect introduction of the answer {answer}')
             answer = text(
                 emojize(':police_car: Something is wrong here'), italic(
