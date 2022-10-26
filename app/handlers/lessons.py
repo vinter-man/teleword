@@ -333,13 +333,13 @@ async def ms_get_answer_set_task(message: types.Message, state: FSMContext):
             emojize(':beach_with_umbrella:'), '\n'
         )
         await message.answer_photo(
-            photo=r'img/project_images/temporary/temp261022.png',
+            photo=open(r'img/project_images/temporary/temp261022.png', 'rb'),
             caption=answer,
             parse_mode=ParseMode.MARKDOWN_V2
         )
         await message.bot.send_audio(
             chat_id=message.chat.id,
-            audio='img/project_images/temporary/temp261022.mp3'
+            audio=open(r'img/project_images/temporary/temp261022.mp3', 'rb')
         )
 
     if task_type == 'choose_the_description':
