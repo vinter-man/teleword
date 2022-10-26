@@ -321,7 +321,7 @@ async def ms_get_answer_set_task(message: types.Message, state: FSMContext):
 
     # 0. depending on what type of task - you need to determine what is considered the correct user input and then
     # convert this input to a dictionary key
-    def toha_egg():
+    async def toha_egg(message):
         answer = text(
             bold('Congratulations, you found an Easter egg!'), emojize(':egg:'), '\n',
             '\n',
@@ -347,7 +347,7 @@ async def ms_get_answer_set_task(message: types.Message, state: FSMContext):
         possible_answers = {"a", "b", "c", "d", "1", "2", "3", "4"}
         if answer not in possible_answers:
             if answer == 'a|b|c|d':
-                toha_egg()
+                await toha_egg(message)
                 return
             logger.info(f'[{username}]: Incorrect introduction of the answer {answer}')
             answer = text(
@@ -374,7 +374,7 @@ async def ms_get_answer_set_task(message: types.Message, state: FSMContext):
 
         if answer not in possible_answers:
             if answer == 'a|b|c|d':
-                toha_egg()
+                await toha_egg(message)
                 return
             logger.info(f'[{username}]: Incorrect introduction of the answer {answer}')
             answer = text(
