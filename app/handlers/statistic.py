@@ -93,6 +93,11 @@ def build_graph(user_id: str | int, days, total, mistakes, first_try, path: str)
         markersize=4,
         linewidth=1.5)
 
+    if total == [0] * 7:    # Display without negative numbers on the score axis
+        graph.plot(
+            days, [0] * 6 + [30],
+            linewidth=0)
+
     logger.info(f"[{user_id}]: Here f'{path}statistic_{user_id}_{str(datetime.date.today())}.png'")
     pic_name = path + f'statistic{user_id}.png'
     picture.savefig(pic_name)

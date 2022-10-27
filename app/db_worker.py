@@ -178,22 +178,42 @@ def change_user_last_using(user_tg_id: str, flag: str = 'change'):
     :param flag: string 'change' / 'check'
     """
 
-    user = session.query(Users).filter_by(tg_id=user_tg_id).one()
+    user = get_user(tg_id=user_tg_id)
     user.current_use_time = str(datetime.date.today())
 
     difference = datetime.date.fromisoformat(user.current_use_time) - datetime.date.fromisoformat(user.last_use_time)
     difference = int(difference.days)
 
-    if not difference or (difference == 1 and flag == 'check'):
-        logger.info(f'[{user_tg_id}] No different user using time')
-    elif difference == 1 and flag == 'change':
-        logger.info(f'[{user_tg_id}]: Shock_mode +1 day')
-        user.shock_mode += 1
-        user.last_use_time = user.current_use_time
+    add_or_change_day_stat(
+        tg_id=str(user_tg_id),
+        first_try=0,
+        mistakes=0,
+        points=0
+    )
+
+    today_user_stat: UsersStatistics = user.stats[-1]
+
+    if difference:
+        if difference == 1 and today_user_stat.total:
+            logger.info(f'[{user_tg_id}]: Shock_mode +1 day')
+            user.shock_mode += 1
+            user.last_use_time = user.current_use_time
+        elif difference == 1 and not today_user_stat.total:
+            pass
+        else:
+            if flag == 'change':
+                logger.info(f'[{user_tg_id}]: Shock_mode first day')
+                user.shock_mode = 1
+                user.last_use_time = user.current_use_time
+            else:
+                logger.info(f'[{user_tg_id}]: Shock_mode finish')
+                user.shock_mode = 0
+                user.last_use_time = user.current_use_time
     else:
-        logger.info(f'[{user_tg_id}]: Shock_mode is finish')
-        user.shock_mode = 0
-        user.last_use_time = user.current_use_time
+        if today_user_stat.total and not user.shock_mode:
+            logger.info(f'[{user_tg_id}]: Shock_mode first day')
+            user.shock_mode = 1
+            user.last_use_time = user.current_use_time
 
     session.add(user)
     session.commit()
@@ -387,7 +407,7 @@ def get_words_data(user_tg_id: str) -> list:
             'word_id': i.word_id,
             'is_main': False
         }
-        for i in sql_query
+        for i in sql_query if i.word_id
     ]
     logger.info(f'[{user_tg_id}]: Successes return words data')
     return words
@@ -498,13 +518,11 @@ def word_count(user_tg_id: str) -> int:
     :param user_tg_id: string representation of telegram user id
     :return: integer value user's word count
     """
-    return (session.query(Users, sqlalchemy.func.count(UsersExamples.ex_id))
-                .outerjoin(UsersExamples)
-                .group_by(Users)
-                .outerjoin(UsersExamplesWords)
-                .group_by(Users)
-                .filter(Users.tg_id == user_tg_id)
-            ).one()[1]
+    return list(engine.execute(
+        "SELECT count(w.word_id) count FROM users u "
+        "LEFT JOIN examples e ON e.user_id = u.user_id "
+        "LEFT JOIN words w ON w.example_id = e.ex_id "
+        "WHERE u.tg_id = '{}';".format(user_tg_id)))[0][0]
 
 
 def get_user_stat(user_tg_id: str, limit: int = 7) -> list:
@@ -559,22 +577,24 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
     :return: path with name of created file
     """
     # sql_filter_key:
-    if sql_filter_key == 'most important words':
-        sql_main = " SELECT " \
-                   " words.word_id, words.word, words.description, examples.ex_id, examples.example" \
-                   " FROM users" \
-                   " LEFT JOIN examples ON examples.user_id = users.user_id" \
-                   " LEFT JOIN words ON words.example_id = examples.ex_id" \
-                   " WHERE users.tg_id = '{}' AND words.rating > (SELECT AVG(rating) FROM words)".format(user_tg_id)
+    logger.info(f'[{user_tg_id}]: Sql query {sql_filter_key}...')
+
+    sql_cmd = """ 
+        SELECT words.word_id, words.word, words.description, examples.ex_id, examples.example
+        FROM users
+        LEFT JOIN examples ON examples.user_id = users.user_id
+        LEFT JOIN words ON words.example_id = examples.ex_id
+        WHERE users.tg_id = '{0}'
+    """.format(user_tg_id)
+
     # elif sql_filter_key == '...':    # * space for expansion
-    #     pass
+    if sql_filter_key == 'most important words':
+        sql_miw = """
+            AND words.rating > (SELECT AVG(rating) FROM words WHERE users.tg_id = '{0}')
+        """.format(user_tg_id)
+        sql_main = sql_cmd + sql_miw
     else:
-        sql_main = " SELECT " \
-                   " words.word_id, words.word, words.description, examples.ex_id, examples.example" \
-                   " FROM users" \
-                   " LEFT JOIN examples ON examples.user_id = users.user_id" \
-                   " LEFT JOIN words ON words.example_id = examples.ex_id" \
-                   " WHERE users.tg_id = '{}'".format(user_tg_id)
+        sql_main = sql_cmd
 
     # sql_sort_key:
     if sql_sort_key == 'by importance':
@@ -584,11 +604,13 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
     else:
         sql_query = engine.execute(sql_main + ' ORDER BY words.word_id ASC')
 
+    logger.info(f'[{user_tg_id}]: Sql query success >>> {type(sql_query)}')
     # file_type:
     file_path += '/'
     if not os.path.isdir(file_path):
         os.mkdir(file_path)
     file_name = str(file_path + 'words' + user_tg_id + '.' + file_type)
+    logger.info(f'[{user_tg_id}]: Create file {file_name}')
     file = open(file_name, 'w', encoding='utf-8')
     # xlsx
     if file_name.endswith('xlsx'):
@@ -604,6 +626,7 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
         sheet.column_dimensions['G'].width = 150
         workbook.remove(new_sheet)
         # write data
+        number = 2
         for number, i in enumerate(sql_query, start=2):
             if number == 2:
                 sheet[f'B{number}'] = "word id"
@@ -697,6 +720,8 @@ def create_file_with_user_words(user_tg_id: str, file_path: str, file_type: str,
     elif file_name.endswith('csv'):
         writer = csv.writer(file, quoting=csv.QUOTE_ALL)
         word_data = [(i.word_id, i.word, i.description, i.ex_id, i.example) for i in sql_query]
+        if not word_data:
+            word_data = [('', '', '', '', '')]
         writer.writerows(word_data)
     # unknown
     else:

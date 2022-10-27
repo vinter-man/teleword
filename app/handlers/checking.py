@@ -83,7 +83,7 @@ async def ms_get_filter_set_order_key_choose(message: types.Message, state: FSMC
             '\n',
             italic('So far we have only the following answers: '), bold(f'{" | ".join(possible_answers)}\n'),
             '\n',
-            r'Try it again\, just entering your answer below\.', '\n',
+            r'Try again\, just type in your answer below\.', '\n',
             '\n'
         )
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
@@ -124,7 +124,7 @@ async def ms_get_order_key_set_file_type_choose(message: types.Message, state: F
             '\n',
             italic('The following sort keys are available: '), bold(f'{" | ".join(possible_answers)}\n'),
             '\n',
-            r'Try it again\, just entering your answer below\.', '\n',
+            r'Try again\, just type in your answer below\.', '\n',
             '\n'
         )
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
@@ -132,7 +132,7 @@ async def ms_get_order_key_set_file_type_choose(message: types.Message, state: F
 
     answer = text(
         r"Excellent\, now the last question in which formats would you most conveniently get your words\:", '\n',
-        bold('1. exel\n'),
+        bold('1. excel\n'),
         bold('2. json\n'),
         bold('3. xml\n'),
         bold('4. csv\n'),

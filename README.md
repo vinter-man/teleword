@@ -124,7 +124,7 @@ We do not hide anything from users, if they need words with the right data type 
 
 ![data-cmd](img/readme_images/data-cmd.png)
 
-If you are a regular user - my advice to you - enjoy a beautiful  ```1. exel``` file :sunglasses:
+If you are a regular user - my advice to you - enjoy a beautiful  ```1. excel``` file :sunglasses:
 
 ![data-cmd2](img/readme_images/data-cmd2.png)
 
@@ -164,13 +164,13 @@ Installing useful packages
 ```
 sudo apt install git openssh
 ```
-Let's generate sssh keys using the s4lv [ed25519](https://ru.wikipedia.org/wiki/EdDSA) method
+Let's generate ssh keys using the s4lv [ed25519](https://ru.wikipedia.org/wiki/EdDSA) method
 ```
 ssh-keygen -t ed25519 
 ```
 ![img.png](img/readme_images/ssh-keygen.png)
 
-Setting up access to sssh keys
+Setting up access to ssh keys
 ```
 cd /root/.ssh/
 touch config
@@ -289,7 +289,7 @@ journalctl -u teleword -f
 ```
 
 ### <a name="docker"></a> Docker
-Let's install the necessary
+Necessary Dependencies:
 ```
 sudo apt install apt-transport-https
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -

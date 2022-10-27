@@ -12,6 +12,7 @@ from aiogram.dispatcher.filters import Text
 
 from .. import db_worker
 from ..db_worker import MinLenError
+import config
 
 
 ########################################################################################################################
@@ -60,6 +61,17 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
                 emojize(":cop: You need at least"), bold("15"), "words to start a lesson, you have only",
                 bold(f"{e}."))
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+        answer = text(
+                emojize(":thinking_face:"), r"The bot has 15 initial words, you can add them by clicking on the button below, "
+                                  r"and then manually delete them when you no longer need them\.",
+                bold(f"{e}."))
+        inl_keyboard = types.InlineKeyboardMarkup()
+        inl_buttons = [
+            types.InlineKeyboardButton(text=text(emojize(':genie: Add')), callback_data='call_add_init_words'),
+            types.InlineKeyboardButton(text=text(emojize(':no_good: I do not need it')), callback_data='call_cancel')]
+        inl_keyboard.add(*inl_buttons)
+
+        await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
         return
     except Exception as e:
         logger.error(f'[{username}]: Houston, we have got a problem {e}')
@@ -99,6 +111,7 @@ async def lesson_cmd(message: types.Message, state: FSMContext):
         task_number=0,
         current_task=None,
         lesson_stats=[],
+        main_word_stat=None,
     )
 
     logger.info(f'[{username}]: Transfer user to the lesson')
@@ -157,21 +170,21 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
         await call.message.bot.send_chat_action(call.from_user.id, ChatActions.TYPING)
         success_percentage = int((first_try / 15) * 100)
 
-        # shock mode
-        try:
-            db_worker.change_user_last_using(
-                user_tg_id=str(call.message.chat.id),
-                flag='change'
-            )
-        except Exception as e:
-            logger.error(f'[{username}]: Unknown sql error {e}')
-
         # daily statistics
         try:
             db_worker.add_or_change_day_stat(
                 tg_id=str(call.message.chat.id),
                 first_try=first_try,
                 mistakes=mistakes,
+            )
+        except Exception as e:
+            logger.error(f'[{username}]: Unknown sql error {e}')
+
+        # shock mode
+        try:
+            db_worker.change_user_last_using(
+                user_tg_id=str(call.message.chat.id),
+                flag='change'
             )
         except Exception as e:
             logger.error(f'[{username}]: Unknown sql error {e}')
@@ -308,10 +321,34 @@ async def ms_get_answer_set_task(message: types.Message, state: FSMContext):
 
     # 0. depending on what type of task - you need to determine what is considered the correct user input and then
     # convert this input to a dictionary key
+    async def toha_egg(message):
+        answer = text(
+            bold('Congratulations, you found an Easter egg!'), emojize(':egg:'), '\n',
+            '\n',
+            r'I dedicate it to the first person who found it as a bug\.', '\n',
+            '\n',
+            r'Toha\, brother\, thank you for always helping me\, never turning away\.'
+            r' I hope we can get out of the current ugly situation\. I hope we meet more than once and'
+            r' we will have the heat like on Bora\-Bora not this cold and hopelessness',
+            emojize(':beach_with_umbrella:'), '\n'
+        )
+        await message.answer_photo(
+            photo=open(r'img/project_images/temporary/temp261022.png', 'rb'),
+            caption=answer,
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
+        await message.bot.send_audio(
+            chat_id=message.chat.id,
+            audio=open(r'img/project_images/temporary/temp261022.mp3', 'rb')
+        )
+
     if task_type == 'choose_the_description':
         # checking the response to the correctness of the input
         possible_answers = {"a", "b", "c", "d", "1", "2", "3", "4"}
         if answer not in possible_answers:
+            if answer == 'a|b|c|d':
+                await toha_egg(message)
+                return
             logger.info(f'[{username}]: Incorrect introduction of the answer {answer}')
             answer = text(
                 emojize(':police_car: Something is wrong here'), italic(
@@ -336,6 +373,9 @@ async def ms_get_answer_set_task(message: types.Message, state: FSMContext):
         possible_answers = standard_possible_answers + word_possible_answers
 
         if answer not in possible_answers:
+            if answer == 'a|b|c|d':
+                await toha_egg(message)
+                return
             logger.info(f'[{username}]: Incorrect introduction of the answer {answer}')
             answer = text(
                 emojize(':police_car: Something is wrong here'), italic(
@@ -439,6 +479,56 @@ async def cb_get_call_to_lesson(call: types.CallbackQuery, state: FSMContext):
     await lesson_cmd(message=call.message, state=state)
 
 
+async def cb_get_call_to_add_init_words(call: types.CallbackQuery, state: FSMContext):
+    """
+    independent action
+        adds words from the config dictionary to the user
+    """
+    username = call.from_user.username
+    logger.info(f'[{username}]: Send call with "add_init_words" command')
+    await state.reset_state(with_data=False)
+
+    answer = text(
+        emojize(r':package: I add words, need a little time\.\.\.'), '\n')
+    remove_keyboard = types.ReplyKeyboardRemove()
+
+    await call.message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=remove_keyboard)
+    await call.message.bot.send_chat_action(call.from_user.id, ChatActions.TYPING)
+
+    db_worker.pending_rollback(username)
+
+    try:
+        for word_data in config.config.INIT_WORDS:
+            user_example = db_worker.add_example(
+                example_text=word_data["example"],
+                user_tg_id=str(call.message.chat.id)
+            )
+            user_word = db_worker.add_word(
+                word=word_data["word"],
+                description=word_data["description"],
+                category=word_data["category"],
+                rating=0,
+                example=user_example,
+            )
+            logger.info(f'[{username}]: >>> {word_data["word"]}')
+    except Exception as e:
+        logger.error(f'[{username}]: Houston, we have got a problem {e}')
+        answer = text(
+                emojize(":oncoming_police_car:"), r"There was a big trouble when add your initial words\, "
+                                                              r"please try again and then write to the administrator\.")
+        await call.message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+        return
+
+    answer = text(
+        emojize(r':ski: Done, now you have 15 starting words'), '\n')
+
+    await call.message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
+    await call.message.delete_reply_markup()
+    await call.answer(show_alert=False)
+
+    logger.info(f'[{username}]: Add init words success')
+
+
 ########################################################################################################################
 def register_lesson_handlers(dp: Dispatcher):
     """
@@ -462,3 +552,10 @@ def register_lesson_handlers(dp: Dispatcher):
         Text(equals='call_lesson'),
         state=ConductLesson.waiting_for_next_move
     )
+
+    dp.register_callback_query_handler(
+        cb_get_call_to_add_init_words,
+        Text(equals='call_add_init_words'),
+        state='*'
+    )
+
