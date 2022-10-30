@@ -335,7 +335,7 @@ def register_adding_handlers(dp: Dispatcher):
     """
     logger.info(f'[{dp}]: Register adding handlers')
 
-    dp.register_message_handler(add_cmd, commands=['add'])
+    dp.register_message_handler(add_cmd, commands=['add'], state='*')
 
     dp.register_callback_query_handler(
         cb_get_example_set_word_input,
