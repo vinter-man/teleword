@@ -198,7 +198,10 @@ async def cb_get_task_number_issues_task(call: types.CallbackQuery, state: FSMCo
         answer = text(
             bold('End of the lesson'), emojize(':tada:'), '\n',
             '\n',
-            emojize(':zap:'), italic('Result'), bold(f'{success_percentage}%\n'))
+            emojize(':zap:'), 'Result', bold(f'{success_percentage}%'), '\n',
+            '\n',
+            emojize(':chart_with_upwards_trend:'), italic('You can see your /statistic'), '\n'
+        )
 
         inl_keyboard = types.InlineKeyboardMarkup()
         inl_buttons = [
