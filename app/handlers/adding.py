@@ -171,19 +171,45 @@ async def ms_get_word_set_description_input(message: types.Message, state: FSMCo
         await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
         return
 
-    # everything is fine. Write current data example, reply the user, set next step state
+    # everything is fine. Try to find description. Write current data example, reply the user, set next step state
+    await message.bot.send_chat_action(message.from_user.id, ChatActions.TYPING)
+
+    try:
+        logger.info(f'[{username}]: Try to find description {user_word}...')
+        found_word_description = await db_worker.get_word_description(word=user_word)
+        if not found_word_description:
+            raise ValueError("Found_word_description is empty")
+    except Exception as e:
+        logger.error(f'[{username}]: Error with finding the description to world "{user_word}" \n{e}\n')
+        found_word_description = False
+
     await state.update_data(current_word=user_word)
-    answer = text(
-           r'Cool\! Now write your description of the word', italic('(from 1 to 400 characters long).'))
 
     inl_keyboard = types.InlineKeyboardMarkup()
     inl_buttons = [
         types.InlineKeyboardButton(text=text(emojize(':ocean: Back  ')), callback_data='call_back_to_word'),
-        types.InlineKeyboardButton(text=text(emojize(':desert_island: Exit ')), callback_data='call_cancel')
+        types.InlineKeyboardButton(text=text(emojize(':desert_island: Exit ')), callback_data='call_cancel'),
+        types.InlineKeyboardButton(text=text(emojize(':pineapple: Use found')), callback_data='call_use_description')
     ]
-    inl_keyboard.add(*inl_buttons)
 
+    if found_word_description:
+        answer = text(
+           r'Cool\! Now write your description of the word', italic(' (from 1 to 400 characters long).'), '\n',
+           '\n',
+           r'Or use what we found for you\:', '\n',
+           italic(f'"{found_word_description}"'), sep=''
+        )
+        await state.update_data(found_description=found_word_description)
+    else:
+        answer = text(
+            r'Cool\! Now write your description of the word', italic('(from 1 to 400 characters long).')
+        )
+        inl_buttons = inl_buttons[0:-1]    # we do not need "Use found" button
+        await state.update_data(found_description=None)
+
+    inl_keyboard.add(*inl_buttons)
     await message.reply(answer, parse_mode=ParseMode.MARKDOWN_V2, reply_markup=inl_keyboard)
+
     await AddingData.waiting_for_description.set()
 
 
@@ -218,6 +244,26 @@ async def cb_get_description_back_to_word(call: types.CallbackQuery):
     await AddingData.waiting_for_word.set()
 
 
+async def cb_get_description_await_ms_get_description_write_data_to_sql(call: types.CallbackQuery, state: FSMContext):
+    """
+    3 action
+        The user used a found description
+    """
+    logger.info(f'[{call.from_user.username}]: Use a found description')
+    await call.message.delete_reply_markup()
+
+    data = await state.get_data()
+    selected_description = data.get('found_description')
+
+    call.message.text = selected_description
+    call.message.from_user.id = call.message.chat.id
+
+    await ms_get_description_write_data_to_sql(
+        message=call.message,
+        state=state
+    )
+
+
 async def ms_get_description_write_data_to_sql(message: types.Message, state: FSMContext):
     """
     3 action
@@ -242,7 +288,7 @@ async def ms_get_description_write_data_to_sql(message: types.Message, state: FS
     await state.update_data(current_description=user_description)
     answer = text(
            r'Cool\!')
-    await message.reply(answer, parse_mode=ParseMode.MARKDOWN_V2)
+    await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
     answer = text(
         r'Sending your data to the database \- this may take some time', emojize(':hourglass_flowing_sand:'))
     await message.answer(answer, parse_mode=ParseMode.MARKDOWN_V2)
@@ -356,6 +402,11 @@ def register_adding_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(
         cb_get_description_back_to_word,
         Text(equals='call_back_to_word'),
+        state=AddingData.waiting_for_description
+    )
+    dp.register_callback_query_handler(
+        cb_get_description_await_ms_get_description_write_data_to_sql,
+        Text(equals='call_use_description'),
         state=AddingData.waiting_for_description
     )
     dp.register_message_handler(ms_get_description_write_data_to_sql,

@@ -6,6 +6,7 @@ import sys
 import json
 import csv
 import time
+import aiohttp
 
 import openpyxl
 import sqlalchemy
@@ -806,6 +807,45 @@ def get_word_category(word: str, default='-', url=URL_OXF) -> str:
 
     # Noun | Verb ... (Part of speech)
     return word_data["results"][0]["lexicalEntries"][0]["lexicalCategory"]["text"]
+
+
+async def get_word_description(word: str, default=None, url=URL_OXF) -> str:
+    """
+    Coroutine search description (short_definitions + '\n' + subsenses_definitions) for word from url async req
+    :param word: string word
+    :param default: return it if no find result
+    :param url: api oxford url
+    :return: string word category by the available parameters
+    """
+    url += word.lower()
+    headers = {
+        'app_id': APP_ID_OXF,
+        'app_key': APP_KEY_OXF
+    }
+    async with aiohttp.ClientSession() as aiohttp_session:
+        async with aiohttp_session.get(url=url, headers=headers) as r:
+            if r.status != 200:
+                logger.warning(f'[{word}]: Requests error '
+                       f'{r.status, headers, url} \n {r.text} \n ')
+                return default
+
+            word_data = await r.json()
+
+            if "error" in word_data.keys():
+                logger.warning(f'[{word}]: No entry found that matches the provided data'
+                               f'{r.status, headers, url} \n {r.text} \n ')
+                return default
+
+            short_definitions = word_data['results'][0]['lexicalEntries'][0]['entries'][0]['senses'][
+                                                                                    0]['shortDefinitions'][0]
+            subsenses_definitions = word_data['results'][0]['lexicalEntries'][0]['entries'][0]['senses'][
+                                                                                    0]['subsenses'][0]['definitions'][0]
+            definitions: str = short_definitions + '\n' + subsenses_definitions
+
+            while word in definitions:
+                definitions = definitions.replace(word, '<word>')
+
+            return definitions
 
 
 def update_data(data_type: str, data_id: int, new_data: str):

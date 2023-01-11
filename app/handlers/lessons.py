@@ -414,9 +414,12 @@ async def ms_get_answer_set_task(message: types.Message, state: FSMContext):
             bold('\n\tWord'), ' : ', italic(f'{user_answer_data["word"]}'),
             bold('\n\tDescription'), ' : ', italic(f'{user_answer_data["description"]}'))
 
+        next_button = 'Next'
+        if task_number == 14:   # last one
+            next_button = 'Finish the lesson'
         inl_keyboard = types.InlineKeyboardMarkup()
         inl_buttons = [
-            types.InlineKeyboardButton(text=text(emojize(':heavy_check_mark: Next')),
+            types.InlineKeyboardButton(text=text(emojize(f':heavy_check_mark: {next_button}')),
                                        callback_data='call_get_task'),
             types.InlineKeyboardButton(text=text(emojize(':end: Exit')), callback_data='call_cancel')]
         inl_keyboard.add(*inl_buttons)
