@@ -1,344 +1,164 @@
-* 🧳 Launched May 2022
-* 🚪 Release v2.2.1
-* 📦Code size 300 КB
+# Teleword
 
+![Teleword](docs/banner.png)
 
-![main picture](img/readme_images/main.png)
+[![CI](https://github.com/vinter-man/teleword/actions/workflows/ci.yml/badge.svg)](https://github.com/vinter-man/teleword/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.12-blue)
+![aiogram](https://img.shields.io/badge/aiogram-3-2CA5E0)
 
-## Short description
-Add your own learned words to the app to reinforce your knowledge with a daily quiz. 
+**Teleword** is a Telegram bot that helps you actually remember the English words you run into.
+You save a word together with the sentence where you found it, and the bot turns your own
+examples into a daily 15-question quiz that focuses on the words you keep getting wrong.
 
-Lessons are formed by priority words. The more often the user uses the bot, the more productive it works. 
+Try it: [@teleword_learning_bot](https://t.me/teleword_learning_bot)
 
-Checks such as card-word, word-card - with a regular approach, they allow you to very effectively consolidate the learned words, especially when the user chooses his own examples with words.
+## Features
 
-Track your progress. Train every day. Edit words. Build your code on top of the API.
+| Command | What it does |
+| --- | --- |
+| `/add` | Save a word: example sentence → word → description. The part of speech is looked up automatically. |
+| `/lesson` | A 15-task quiz. Even tasks: pick the description of a word; odd tasks: pick the word by its description. |
+| `/statistic` | Daily streak, points, word count and a chart of the last 7 days. |
+| `/data` | Download your words as Excel, JSON, XML or CSV, all words or only the "important" ones. |
+| `/change` | Edit or delete a word, a description or a whole example. |
+| `/api` | Request a personal key for the REST API (the admin approves it in one tap). |
+| `/time` | The bot's clock; streak days are counted by it. |
+| `/admin` | Admin only: blacklist, ban/unban, broadcast. |
 
-You can check how the user part of the telegram [bot](https://t.me/tele_word_learning_bot) works.
+### How a lesson is built
 
----
+Every word has a **rating**: it goes up by one for every wrong answer and down by one for the final
+correct answer. A lesson takes the 5 highest-rated words (the ones you struggle with), opens with
+three of them as "work on mistakes", closes with the other two as the "final boss", and fills the
+middle with 10 random words. Wrong options are taken from words with the **same part of speech**
+whenever possible, so you can't guess the answer from grammar alone.
 
-## Table of contents
+![Weekly statistics](docs/statistic.png)
 
-* [User guide](#user-guide)
-  * [First steps](#fs)
-  * [Adding new words](#adw)
-  * [Lesson](#lesson)
-  * [Statistic](#stat)
-  * [Get, change, delete](#gcd)
-  * [API](#api)
-* [Installation guide](#installation)
-  * [Systemctl | Screen](#systectl_screen)
-    * [Systemctl](#systemctl)
-    * [Screen](#screen)
-  * [Docker](#docker)
-  * [Docker compose](#docker-compose)
-* [Contact](#contact)
+## Architecture
 
----
----
-
-## <a name="user-guide"></a> User guide
-A quick overview of the main functionality
-### <a name="fs"></a> First steps
-First of all, you enter the bot using the ```/start``` command
-
-And ```/help``` command to get to the main menu
-
-![first-steps-front](img/readme_images/first-steps-front.png)
-
-> :suspect: The user is verified; the data is entered into the table
-> 
->![first-steps-back-logs](img/readme_images/first-steps-back.png)
->
->![first-steps-back-sql](img/readme_images/first-steps-back2.png)
-
-### <a name="adw"></a> Adding new words
-Now it's time to add new data, this is how it usually looks for me
-
-I open the series with subtitles, a dictionary (for me, it's just a browser) and a Teleword
-
-![add1](img/readme_images/add1.jpg)
-
-I watch a series until I stumble upon an unfamiliar word
-
-I write down a remark with this word and look it up in the dictionary
-
-![add1](img/readme_images/add2.jpg)
-
-I copy the description and wait for a successful addition
-
-![add3](img/readme_images/add3.jpg)
-
-Great, I click ```continue``` and continue to enjoy the series only a level smarter than I was 30 seconds ago
-
-![add4](img/readme_images/add4.jpg)
-
-> :hurtrealbad: Under the hood:
->- the data is checked for correctness
->- the part of speech of the word is pulled up for more effective testing
->- rating is being prepared
-> 
->![addlogs](img/readme_images/addlogs.jpg)
-> 
->![addsql](img/readme_images/addsql.jpg)
-
-### <a name="lesson"></a> Lesson
-You have added more than 15 initial words (I recommend at least 30-40) - now you can start(```/lesson```) filling words 
-with tests 
-
-![lesson1](img/readme_images/lesson1.png)
-
-This is what we remember! Let's read the example again to strengthen our knowledge.
-
-![lesson2](img/readme_images/lesson2.png)
-
-> :godmode: One of the hardest parts of the backend is hidden behind the lesson formations.
-> 
-> It is after the lesson that all user statistics are collected - his mistakes, successes, attendance, the rating of words changes. 
-> 
-> The occupation itself is formed by repeated enumeration with a bit of randomness.
-> 
-> You can see Python code in functions  ```db_worker.get_lesson_data()```
-> 
-> The logic for checking the correctness of the answer is enclosed in two coroutines:
-> - one of them checks if the lesson is finished, generates a task from the radis and displays it to the user ```handlers.lessons.cb_get_task_number_issues_task```
-> - the other one catches the user's response and, depending on the correctness, launches the coroutine, passing it the current data about the lesson ```handlers.lessons.ms_get_answer_set_task``` 
- 
-### <a name="stat"></a> Statistic
-Who doesn't like to look at statistics? Make a smart face and click ```/statistiс```
-
-![statistic-front](img/readme_images/statistic-front.png)
-
-> :rage1: We climb into the database with difficult queries, count the number of words ```db_worker.word_count()```, and the user tables pull out data on the total number of points and the number of shock days of the user ```db_worker.get_user()```. 
->
-> We transfer data by day from the statistics table to plotting through matpotlib
-> 
-> ```db_worker.get_user_stat()``` -> ```db_worker.build_total_mistakes_firsttry_data_for_graph()``` -> ```handlers.statistic.build_graph()```
-> 
-> ![statistic-back](img/readme_images/statistic-back.png)
-> 
-
-### <a name="gcd"></a> Get, change, delete
-We do not hide anything from users, if they need words with the right data type - hold on command ```/data```
-
-![data-cmd](img/readme_images/data-cmd.png)
-
-If you are a regular user - my advice to you - enjoy a beautiful  ```1. excel``` file :sunglasses:
-
-![data-cmd2](img/readme_images/data-cmd2.png)
-
-The logic is simple, choose what and with what you want to do and do it
-
-![change-cmd](img/readme_images/change-cmd.png)
-
-> :suspect: The logic is simple - give the user the opportunity to edit their data on the sql data ids.
-> 
-> By revalidating the input, checking permissions, and running a cascading deletion of words when trying to delete an example.
-
-### <a name="api"></a> API
-
-Or maybe we want to develop something of our own on the Teleword api? Then let's kindly distract our good old friend admin from swimming in the Mediterranean Sea and drinking cocktails
-
-![api-request](img/readme_images/api-request.png)
-
-While we wait, we can study detailed instructions for use
-
-![api-doc](img/readme_images/api-doc.png)
-
-> :shipit: All methods of the restful interface are implemented via flask-api in a separate synchronous  ```api.py``` module.
-> 
-> To use the request key - the administrator must personally process the request and issue the key to the user.
-> 
-> ![api-admin](img/readme_images/api-admin.png)
----
----
-
-## <a name="installation"></a> Installation on the server
-
-Let's make sure the linux machine is up-to-date.
-```
-sudo apt update && sudo apt upgrade -y
-```
-Installing useful packages
-```
-sudo apt install git openssh
-```
-Let's generate ssh keys using the s4lv [ed25519](https://ru.wikipedia.org/wiki/EdDSA) method
-```
-ssh-keygen -t ed25519 
-```
-![img.png](img/readme_images/ssh-keygen.png)
-
-Setting up access to ssh keys
-```
-cd /root/.ssh/
-touch config
-```
-```
-nano config
-```
-```
-Host <SSH NAME>
- HostName github.com
- IdentityFile ~/.ssh/<KEY>
- IdentitiesOnly yes
-```
-![img.png](img/readme_images/ssh-config.png)
-
-
-Copy the public key and transfer it to GitHub
-```
- cat <KEY>.pub
-```
-![img.png](img/readme_images/ssh_github_addind.png)
-
-![img.png](img/readme_images/ssh-key-added.png)
-
-```
-cd #
-git clone git@<SSH NAME>:vinter-man/teleword.git
-```
-> yes
-
-![img.png](img/readme_images/git-establish.png)
-
-
-```
-nano teleword/config/config.py
-```
-> Do not forget to change the config file for yourself.
-
-### <a name="systectl_screen"></a> Systemctl | Screen
-Let's move on to setting up a virtual environment
-```
-sudo apt install -y make build-essential libssl-dev zlib1g-dev \
-> libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev\
-> libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl
-```
-```
-git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-```
-```
-echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n eval "$(pyenv init -)"\nfi' >> ~/.bashrc
-```
-```
-pyenv in tall 3.10.2
-pyenv rehash
-eval "$(pyenv init -)"
-sudo apt install python3-venv
-cd teleword
-pyenv local 3.10.2
-python -m venv <VENV NAME>
-source <VENV NAME>/bin/activate
-pip install -r requirements.txt
-```
-![img.png](img/readme_images/py-start.png)
-After a successful launch, you can exit
-
-Now you have to decide how it will be most convenient for you to launch your bot for continuous operation.
-
-#### <a name="screen"></a> Screen 
-```
-sudo apt install screen
-screen -S teleword
-python teleword.py
-```
-View logs in real time
-```
-screen -r teleword
+```mermaid
+flowchart LR
+    TG[Telegram] <-- long polling --> BOT[bot<br/>aiogram 3]
+    CLIENT[API client] -- X-API-Key --> API[api<br/>FastAPI]
+    BOT --> SVC[services<br/>business logic]
+    API --> SVC
+    SVC --> DB[(SQLite<br/>SQLAlchemy 2 async)]
+    BOT -- FSM state --> REDIS[(Redis)]
+    SVC -. part of speech .-> DICT[dictionaryapi.dev]
 ```
 
+* **`teleword/services`**: all business logic (vocabulary, lessons, streaks, export, API keys).
+  Plain async functions over an `AsyncSession`; no Telegram or HTTP types inside, so the bot and
+  the API share it.
+* **`teleword/bot`**: aiogram 3 routers. A middleware opens one DB session per update, registers
+  new users on their first message and drops updates from blacklisted users.
+* **`teleword/api`**: FastAPI app with OpenAPI docs at `/docs`.
+* **`teleword/db`**: SQLAlchemy 2 models: `users`, `examples`, `words`, `daily_stats`, `api_keys`.
 
-#### <a name="systemctl"></a> Systemctl 
+## Running it
 
-Let's create and run the service
-```
-sudo nano /etc/systemd/system/teleword.service
-```
-```
-[Unit]
-Description=Teleword
-After=network.target
+### Docker (recommended)
 
-[Service]
-Type=simple
-User=root
-ProtectHome=false
-WorkingDirectory=/root/teleword/
-ExecStart=/root/teleword/<VENV NAME>/bin/python teleword.py
-Restart=on-failure
-RestartSec=10
-LimitNOFILE=4096
-
-[Install]
-WantedBy=multi-user.target
-```
-After saving the service file, let's start Teleword
-```
-sudo systemctl daemon-reload
-sudo systemctl enable teleword
-sudo systemctl restart teleword
-sudo systemctl status teleword
-```
-View logs in real time
-```
-journalctl -u teleword -f
-```
-
-### <a name="docker"></a> Docker
-Necessary Dependencies:
-```
-sudo apt install apt-transport-https
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo apt install docker
-```
-```
-cd teleword
-docker build -t teleword .
-```
-```
-docker run \
-  -d \
-  -p 26256:80 \
-  --name teleword \
-  teleword
-```
-View logs in real time
-```
-docker logs teleword -f --tail 100
-```
-
-### <a name="docker-compose"></a> Docker-compose
-Install [docker-compose](https://docs.docker.com/desktop/install/ubuntu/) 
-```
-cd teleword
+```bash
+cp .env.example .env        # set BOT_TOKEN and ADMIN_ID
 docker compose up -d --build
-```
-View logs in real time
-```
-cd teleword
-docker compose logs -f --tail 10
+docker compose logs -f bot
 ```
 
----
----
+The stack is self-contained: its own network and volumes, read-only containers without Linux
+capabilities, memory/CPU limits and rotated logs. The bot needs no open ports (long polling); the
+API listens on `127.0.0.1:8790` only, so put a reverse proxy in front of it to publish it.
 
+### Locally
 
-## <a name="contact"></a> Contact
+```bash
+uv sync
+cp .env.example .env        # set BOT_TOKEN and ADMIN_ID
+uv run python -m teleword.db                                   # create tables
+uv run python -m teleword.bot                                  # the bot
+uv run uvicorn --factory teleword.api.app:create_app --reload  # the API
+```
 
-* Telegram - https://t.me/vindemure
-* Mail -   serhiivinterman@gmail.com
+Without `REDIS_URL` the bot keeps conversation state in memory.
 
----
----
+### Configuration
 
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `BOT_TOKEN` | required | Token from [@BotFather](https://t.me/BotFather) |
+| `ADMIN_ID` | required | Telegram id of the admin (API key approvals, `/admin`) |
+| `DATABASE_URL` | `sqlite+aiosqlite:///./data/teleword.db` | Any SQLAlchemy async URL |
+| `REDIS_URL` | empty | FSM storage; empty means in-memory |
+| `TIMEZONE` | `UTC` | Day boundaries for streaks |
+| `API_PUBLIC_URL` | `http://localhost:8080` | Base URL shown in `/api` instructions |
+| `DICTIONARY_API_URL` | dictionaryapi.dev | Part-of-speech lookup |
 
-![forgot](img/readme_images/forgot.png)
+## REST API
 
----
----
+Get a key with `/api` in the bot and send it in the `X-API-Key` header.
 
+```bash
+curl -H "X-API-Key: $KEY" https://your-host/api/words
+curl -H "X-API-Key: $KEY" -H "Content-Type: application/json" \
+     -d '{"text": "We just imagine the arrows because we fear them."}' https://your-host/api/examples
+curl -H "X-API-Key: $KEY" -H "Content-Type: application/json" \
+     -d '{"word": "arrow", "description": "Shot from a bow", "example_id": 1}' https://your-host/api/words
+curl -H "X-API-Key: $KEY" https://your-host/api/lesson
+```
 
+| Method | Path | |
+| --- | --- | --- |
+| `GET` | `/api/words` | All your words with their examples |
+| `POST` | `/api/words` | Add a word to an existing example |
+| `GET` `PATCH` `DELETE` | `/api/words/{id}` | Deleting the last word of an example deletes the example |
+| `GET` `POST` | `/api/examples` | |
+| `GET` `PUT` `DELETE` | `/api/examples/{id}` | Deleting an example deletes its words |
+| `GET` | `/api/lesson` | A freshly built 15-task lesson (`409` with fewer than 15 words) |
+| `GET` | `/health` | Liveness probe |
+
+Objects of other users are reported as `404`, so ids cannot be probed. Keys are stored as SHA-256
+hashes and can be rotated from the bot.
+
+## Tests
+
+```bash
+uv run pytest --cov
+```
+
+82 tests, 94% line coverage, no network access:
+
+* **unit**: lesson building, answer parsing, streak rules, export formats;
+* **services on a real SQLite database**: ownership isolation, cascades, statistics, API keys;
+* **bot end-to-end**: fake Telegram updates go through the real dispatcher, middlewares and
+  database, with Bot API calls recorded by a fake session (add a word, a full lesson, export,
+  editing, the API key approval, admin commands, error handling);
+* **REST API** through an ASGI transport.
+
+CI runs ruff, the tests and a Docker build on every push.
+
+## Version 3: what changed
+
+Teleword started in 2022 as an aiogram 2 + Flask + MySQL project. Version 3 is a full rewrite
+that keeps every feature and fixes the things that made it flaky:
+
+* **One shared SQLAlchemy session for the whole app** (async bot plus threaded Flask) caused the
+  random `PendingRollbackError`s. Now there is one session per update / request.
+* Blocking DB and HTTP calls ran inside the event loop. Everything is async now, and chart
+  rendering and file export run in worker threads.
+* User text broke Telegram's MarkdownV2 parser. Messages now use HTML with escaping.
+* Raw SQL built with `str.format` → ORM queries.
+* Flask ran with `debug=True` (remote code execution via the Werkzeug debugger) → FastAPI.
+* API keys travelled in the URL path and were stored in plain text → `X-API-Key` header, hashed
+  keys, approval and rotation from the bot.
+* Edits were silently lower-cased; "most important words" averaged ratings over all users;
+  the blacklist was stored but never enforced; starter words referenced a config that wasn't in
+  the repository; temporary files leaked on errors; matplotlib figures were never closed.
+* Secrets lived in a committed config file → environment variables; the paid Oxford dictionary
+  API → the free dictionaryapi.dev.
+* A hand-written process supervisor → Docker restart policies and health checks.
+
+## Contact
+
+* Telegram: [@vindemure](https://t.me/vindemure)
+* Email: serhiivinterman@gmail.com

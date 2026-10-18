@@ -1,9 +1,83 @@
-version: '3'
+# Self-contained stack: its own network, volumes and resource limits, no public ports.
+# The bot uses long polling, so it needs no inbound traffic at all;
+# the REST API listens on localhost only (put a reverse proxy in front to publish it).
+name: teleword
+
+x-hardening: &hardening
+  restart: unless-stopped
+  read_only: true
+  tmpfs: [/tmp]
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  pids_limit: 128
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
+x-app: &app
+  <<: *hardening
+  build: .
+  image: teleword:latest
+  env_file: .env
+  environment:
+    DATABASE_URL: sqlite+aiosqlite:////app/data/teleword.db
+    REDIS_URL: redis://redis:6379/0
+  volumes:
+    - data:/app/data
 
 services:
-  teleword:
-    # where is the Dockerfile for teleword regarding yml file for building and start this container
-    build: .
+  migrate:
+    <<: *app
+    command: ["python", "-m", "teleword.db"]
+    restart: "no"
+
+  bot:
+    <<: *app
+    command: ["python", "-m", "teleword.bot"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+    # aiogram's ~300 pydantic models alone take ~170 MB.
+    mem_limit: 384m
+    # Importing aiogram builds ~300 pydantic models (~12 s of CPU on a small VPS);
+    # at runtime the bot is idle most of the time.
+    cpus: 1.0
+
+  api:
+    <<: *app
+    command:
+      ["uvicorn", "--factory", "teleword.api.app:create_app", "--host", "0.0.0.0", "--port", "8080", "--proxy-headers"]
     ports:
-      - 2625:80
-    restart: on-failure
+      - "127.0.0.1:${API_PORT:-8790}:8080"
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    mem_limit: 192m
+    cpus: 0.5
+
+  redis:
+    <<: *hardening
+    image: redis:7.4-alpine
+    # Start as the image's redis user: the default entrypoint switches users itself,
+    # which needs capabilities that cap_drop removes.
+    user: "999:1000"
+    # FSM state only: AOF persistence, tiny memory cap, never evict live conversations.
+    command: ["redis-server", "--appendonly", "yes", "--save", "", "--maxmemory", "32mb", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    mem_limit: 64m
+    cpus: 0.25
+
+volumes:
+  data:
+  redis:
