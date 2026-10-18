@@ -8,7 +8,7 @@
 .coverage
 **/__pycache__
 data
-docs
+img
 tests
 README.md
 **/._*
