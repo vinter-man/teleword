@@ -22,3 +22,7 @@ data/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# README screenshot tooling
+tools/screenshots/node_modules/
+tools/screenshots/.cache/

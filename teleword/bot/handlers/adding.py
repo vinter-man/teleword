@@ -1,3 +1,4 @@
+import logging
 from html import escape
 
 from aiogram import F, Router
@@ -17,6 +18,7 @@ from teleword.services import vocabulary
 from teleword.services.dictionary import lookup_category
 
 router = Router(name="adding")
+logger = logging.getLogger(__name__)
 
 TEXT_INPUT = F.text & ~F.text.startswith("/")
 
@@ -140,8 +142,9 @@ async def got_description(
     await message.bot.send_chat_action(message.chat.id, ChatAction.TYPING)
 
     category = await lookup_category(http, settings.dictionary_api_url, word)
-    await vocabulary.add_entry(session, user, example, word, description, category)
+    entry = await vocabulary.add_entry(session, user, example, word, description, category)
     await session.commit()
+    logger.info("@%s added %r (%s) to example #%d", user.nickname, word, category or "-", entry.example_id)
 
     await state.set_data({"last_example": example})
     await state.set_state(None)

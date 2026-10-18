@@ -1,3 +1,4 @@
+import logging
 from html import escape
 
 from aiogram import Bot, F, Router
@@ -15,6 +16,7 @@ from teleword.db.models import User
 from teleword.services import api_keys
 
 router = Router(name="api")
+logger = logging.getLogger(__name__)
 
 
 class ApiRequest(StatesGroup):
@@ -83,6 +85,7 @@ async def got_purpose(
 
     await api_keys.request(session, user, purpose)
     await session.commit()
+    logger.info("@%s requested an API key", user.nickname)
     await reset_state(state)
 
     await message.bot.send_message(
@@ -115,6 +118,7 @@ async def admin_decision(
     if callback_data.action == "approve":
         key = await api_keys.approve(session, requester.id)
         await session.commit()
+        logger.info("API key for @%s approved", requester.nickname)
         if key is None:
             await callback.message.answer("The request was withdrawn.")
             return
@@ -123,6 +127,7 @@ async def admin_decision(
     else:
         await api_keys.reject(session, requester.id)
         await session.commit()
+        logger.info("API key request of @%s rejected", requester.nickname)
         await bot.send_message(requester.tg_id, "Sorry, your API key request was declined.")
         await callback.message.answer(f"❌ Request from @{escape(requester.nickname)} declined.")
 
@@ -132,6 +137,7 @@ async def rotate_key(callback: CallbackQuery, session: AsyncSession, user: User,
     await drop_markup(callback)
     key = await api_keys.rotate(session, user.id)
     await session.commit()
+    logger.info("@%s rotated their API key", user.nickname)
     if key is None:
         await callback.message.answer("You don't have an active key. Request one with /api.")
         return

@@ -1,6 +1,6 @@
 * 🧳 Launched May 2022
-* 🚪 Release v2.2.1
-* 📦Code size 300 KB
+* 🚪 Release v3.0.0
+* 📦Code size 95 KB
 
 
 ![main picture](img/readme_images/main.png)
@@ -28,11 +28,8 @@ You can check how the user part of the telegram [bot](https://t.me/teleword_lear
   * [Get, change, delete](#gcd)
   * [API](#api)
 * [Installation guide](#installation)
-  * [Systemctl | Screen](#systectl_screen)
-    * [Systemctl](#systemctl)
-    * [Screen](#screen)
-  * [Docker](#docker)
   * [Docker compose](#docker-compose)
+  * [Without Docker](#local)
 * [Contact](#contact)
 
 ---
@@ -99,22 +96,24 @@ This is what we remember! Let's read the example again to strengthen our knowled
 > 
 > The occupation itself is formed by repeated enumeration with a bit of randomness.
 > 
-> You can see Python code in functions  ```db_worker.get_lesson_data()```
+> You can see Python code in function ```services.lessons.build_lesson()```
 > 
 > The logic for checking the correctness of the answer is enclosed in two coroutines:
-> - one of them checks if the lesson is finished, generates a task from the radis and displays it to the user ```handlers.lessons.cb_get_task_number_issues_task```
-> - the other one catches the user's response and, depending on the correctness, launches the coroutine, passing it the current data about the lesson ```handlers.lessons.ms_get_answer_set_task``` 
+> - one of them checks if the lesson is finished, takes the next task from the lesson state in redis and displays it to the user ```bot.handlers.lessons.next_task```
+> - the other one catches the user's response (a button or a typed letter), checks it and updates the lesson state ```bot.handlers.lessons.check_answer```
+> 
+> At the end, ratings, daily statistics, points and the streak are saved in one transaction ```services.lessons.finish_lesson()```
  
 ### <a name="stat"></a> Statistic
 Who doesn't like to look at statistics? Make a smart face and click ```/statistic```
 
 ![statistic-front](img/readme_images/statistic-front.png)
 
-> :rage1: We climb into the database with difficult queries, count the number of words ```db_worker.word_count()```, and the user tables pull out data on the total number of points and the number of shock days of the user ```db_worker.get_user()```. 
+> :rage1: We climb into the database, count the number of words ```services.vocabulary.count_words()```, and the user table gives the total number of points and the streak - days in a row with at least one lesson ```services.streak.current_streak()```. 
 >
-> We transfer data by day from the statistics table to plotting through matpotlib
+> We transfer data by day from the statistics table to plotting through matplotlib, in a worker thread, so the bot keeps answering other users meanwhile
 > 
-> ```db_worker.get_user_stat()``` -> ```db_worker.build_total_mistakes_firsttry_data_for_graph()``` -> ```handlers.statistic.build_graph()```
+> ```services.stats.recent_stats()``` -> ```bot.charts.render_stats_chart()``` -> ```bot.handlers.statistic.statistic_cmd()```
 > 
 > ![statistic-back](img/readme_images/statistic-back.png)
 > 
@@ -124,7 +123,7 @@ We do not hide anything from users, if they need words with the right data type 
 
 ![data-cmd](img/readme_images/data-cmd.png)
 
-If you are a regular user - my advice to you - enjoy a beautiful  ```1. excel``` file :sunglasses:
+If you are a regular user - my advice to you - enjoy a beautiful ```Excel``` file :sunglasses:
 
 ![data-cmd2](img/readme_images/data-cmd2.png)
 
@@ -142,13 +141,13 @@ Or maybe we want to develop something of our own on the Teleword api? Then let's
 
 ![api-request](img/readme_images/api-request.png)
 
-While we wait, we can study detailed instructions for use
+As soon as the admin approves the request, the key arrives right in the chat, together with detailed instructions for use
 
 ![api-doc](img/readme_images/api-doc.png)
 
-> :shipit: All methods of the restful interface are implemented via flask-api in a separate synchronous  ```api.py``` module.
+> :shipit: All methods of the restful interface are implemented with FastAPI in ```teleword/api/app.py```, interactive documentation is at ```/docs```. The key is sent in the ```X-API-Key``` header and is stored only as a hash.
 > 
-> To use the request key - the administrator must personally process the request and issue the key to the user.
+> The administrator still looks at every request personally, but now it is one tap: the key is generated and sent to the user automatically.
 > 
 > ![api-admin](img/readme_images/api-admin.png)
 ---
@@ -164,7 +163,7 @@ Installing useful packages
 ```
 sudo apt install git openssh
 ```
-Let's generate ssh keys using the s4lv [ed25519](https://ru.wikipedia.org/wiki/EdDSA) method
+Let's generate ssh keys using the s4lv [ed25519](https://en.wikipedia.org/wiki/EdDSA) method
 ```
 ssh-keygen -t ed25519 
 ```
@@ -204,124 +203,40 @@ git clone git@<SSH NAME>:vinter-man/teleword.git
 ![img.png](img/readme_images/git-establish.png)
 
 
+Create the config from the example and fill in the bot token and your Telegram id
 ```
-nano teleword/config/config.py
+cd teleword
+cp .env.example .env
+nano .env
 ```
 > Do not forget to change the config file for yourself.
 
-### <a name="systectl_screen"></a> Systemctl | Screen
-Let's move on to setting up a virtual environment
-```
-sudo apt install -y make build-essential libssl-dev zlib1g-dev \
-> libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev\
-> libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl
-```
-```
-git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-```
-```
-echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n eval "$(pyenv init -)"\nfi' >> ~/.bashrc
-```
-```
-pyenv in tall 3.10.2
-pyenv rehash
-eval "$(pyenv init -)"
-sudo apt install python3-venv
-cd teleword
-pyenv local 3.10.2
-python -m venv <VENV NAME>
-source <VENV NAME>/bin/activate
-pip install -r requirements.txt
-```
-![img.png](img/readme_images/py-start.png)
-After a successful launch, you can exit
+### <a name="docker-compose"></a> Docker compose
+Install [Docker with the compose plugin](https://docs.docker.com/engine/install/ubuntu/)
 
-Now you have to decide how it will be most convenient for you to launch your bot for continuous operation.
+```
+docker compose build --quiet
+docker compose up -d
+docker compose ps
+```
+![docker-start](img/readme_images/docker-start.png)
 
-#### <a name="screen"></a> Screen 
-```
-sudo apt install screen
-screen -S teleword
-python teleword.py
-```
+The stack is self-contained, so it can live on a server next to other projects: its own network and volumes, read-only containers with memory and CPU limits, rotated logs. The bot needs no open ports; the API listens on ```127.0.0.1:8790``` only.
+
 View logs in real time
 ```
-screen -r teleword
+docker compose logs -f bot
 ```
 
-
-#### <a name="systemctl"></a> Systemctl 
-
-Let's create and run the service
+### <a name="local"></a> Without Docker
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), it brings the right Python version itself
 ```
-sudo nano /etc/systemd/system/teleword.service
+uv sync
+uv run python -m teleword.db
+uv run python -m teleword.bot
+uv run uvicorn --factory teleword.api.app:create_app
 ```
-```
-[Unit]
-Description=Teleword
-After=network.target
-
-[Service]
-Type=simple
-User=root
-ProtectHome=false
-WorkingDirectory=/root/teleword/
-ExecStart=/root/teleword/<VENV NAME>/bin/python teleword.py
-Restart=on-failure
-RestartSec=10
-LimitNOFILE=4096
-
-[Install]
-WantedBy=multi-user.target
-```
-After saving the service file, let's start Teleword
-```
-sudo systemctl daemon-reload
-sudo systemctl enable teleword
-sudo systemctl restart teleword
-sudo systemctl status teleword
-```
-View logs in real time
-```
-journalctl -u teleword -f
-```
-
-### <a name="docker"></a> Docker
-Necessary Dependencies:
-```
-sudo apt install apt-transport-https
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo apt install docker
-```
-```
-cd teleword
-docker build -t teleword .
-```
-```
-docker run \
-  -d \
-  -p 26256:80 \
-  --name teleword \
-  teleword
-```
-View logs in real time
-```
-docker logs teleword -f --tail 100
-```
-
-### <a name="docker-compose"></a> Docker-compose
-Install [docker-compose](https://docs.docker.com/desktop/install/ubuntu/) 
-```
-cd teleword
-docker compose up -d --build
-```
-View logs in real time
-```
-cd teleword
-docker compose logs -f --tail 10
-```
+Without ```REDIS_URL``` in ```.env``` the bot keeps conversation state in memory. Run the tests with ```uv run pytest```
 
 ---
 ---

@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from aiogram import F, Router
 from aiogram.enums import ChatAction
@@ -14,6 +15,7 @@ from teleword.services import export
 from teleword.services.export import Format, Order, Selection
 
 router = Router(name="export")
+logger = logging.getLogger(__name__)
 
 ALL_FORMATS = "all"
 FORMAT_LABELS = {Format.XLSX: "Excel", Format.JSON: "JSON", Format.XML: "XML", Format.CSV: "CSV"}
@@ -81,3 +83,4 @@ async def send_files(
             BufferedInputFile(content, filename=export.filename(fmt)),
             caption=f"Done, here are your {len(rows)} words, enjoy 🍰",
         )
+    logger.info("@%s exported %d words as %s", user.nickname, len(rows), ", ".join(formats))

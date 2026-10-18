@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 
 from aiogram import Router
 from aiogram.enums import ChatAction
@@ -38,7 +39,9 @@ async def statistic_cmd(
     )
 
     try:
+        started = time.perf_counter()
         chart = await asyncio.to_thread(render_stats_chart, series)
+        logger.info("Chart for @%s rendered in %d ms", user.nickname, (time.perf_counter() - started) * 1000)
     except Exception:
         logger.exception("Failed to render the chart for %s", user.tg_id)
         await message.answer(caption, reply_markup=ReplyKeyboardRemove())

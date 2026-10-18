@@ -1,3 +1,4 @@
+import logging
 import random
 from html import escape
 
@@ -18,6 +19,7 @@ from teleword.db.models import User
 from teleword.services import lessons, starter_words, vocabulary
 
 router = Router(name="lessons")
+logger = logging.getLogger(__name__)
 
 PRAISE = ["Well done!", "Super!", "Cool!", "Excellent!", "Perfect!", "Great!", "Fabulous!", "Correct!"]
 COMFORT = [
@@ -72,7 +74,8 @@ async def start_lesson(message: Message, state: FSMContext, session: AsyncSessio
     await reset_state(state)
     await message.answer("🧘 Preparing your lesson…", reply_markup=ReplyKeyboardRemove())
     try:
-        tasks = lessons.build_lesson(await lessons.load_cards(session, user.id))
+        cards = await lessons.load_cards(session, user.id)
+        tasks = lessons.build_lesson(cards)
     except lessons.NotEnoughWords as exc:
         await message.answer(
             f"👮 A lesson needs at least <b>{lessons.LESSON_SIZE}</b> words, you have <b>{exc.have}</b>.\n\n"
@@ -97,6 +100,7 @@ async def start_lesson(message: Message, state: FSMContext, session: AsyncSessio
         }
     )
     await state.set_state(Lesson.active)
+    logger.info("@%s started a lesson (%d words in the pool)", user.nickname, len(cards))
     await message.answer(INTRO, reply_markup=keyboard(("🏂 Start", Nav(action="lesson_next")), EXIT))
 
 
@@ -200,6 +204,13 @@ async def finish(
 
     summary = await lessons.finish_lesson(session, user, results, settings.today())
     await session.commit()
+    logger.info(
+        "@%s finished a lesson: %d%% on the first try, %d mistakes, streak %d",
+        user.nickname,
+        summary.success_percent,
+        summary.mistakes,
+        summary.streak,
+    )
 
     await message.answer(
         "<b>End of the lesson</b> 🎉\n\n"

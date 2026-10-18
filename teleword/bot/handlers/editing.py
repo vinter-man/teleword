@@ -1,3 +1,4 @@
+import logging
 from html import escape
 
 from aiogram import F, Router
@@ -17,6 +18,7 @@ from teleword.services import vocabulary
 from teleword.services.dictionary import lookup_category
 
 router = Router(name="editing")
+logger = logging.getLogger(__name__)
 
 FIELDS = ("word", "description", "example")
 NEXT_STEP = keyboard(("🚣 Continue", Nav(action="change_again")), EXIT)
@@ -154,6 +156,7 @@ async def got_value(
         await message.answer(f"{exc} Try again.")
         return
     await session.commit()
+    logger.info("@%s edited %s #%d", user.nickname, field, target.id)
 
     await reset_state(state)
     card = example_card(target) if isinstance(target, Example) else word_card(target)
@@ -173,6 +176,7 @@ async def confirm_delete(
     elif target is not None:
         await vocabulary.delete_word(session, target)
     await session.commit()
+    logger.info("@%s deleted %s #%d", user.nickname, data["edit_field"], data["target_id"])
     await callback.message.answer("Deleted 🧹", reply_markup=NEXT_STEP)
 
 
